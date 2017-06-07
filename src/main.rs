@@ -1,9 +1,10 @@
 extern crate sdl2;
 extern crate rand;
 
+pub mod node;
 pub mod layer;
 pub mod scene;
-pub mod spirits;
+pub mod sprite;
 pub mod display;
 
 #[cfg(target_os = "emscripten")]

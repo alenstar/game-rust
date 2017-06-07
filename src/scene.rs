@@ -1,5 +1,7 @@
 extern crate sdl2;
 
+use std::ops::{Deref, DerefMut};
+
 use std::path::Path;
 
 use sdl2::rect::Rect;
@@ -12,7 +14,7 @@ use std::rc::Rc;
 use sdl2::keyboard::Keycode;
 
 use display::Displayable;
-use spirits::Spirits;
+use sprite::Sprite;
 
 pub struct Scene {
     // Internal state.
@@ -28,7 +30,7 @@ pub struct Scene {
 
     // Generic.
     children: Vec<Rc<RefCell<Displayable>>>,
-    spirits: Spirits,
+    background: Sprite,
 }
 
 // TODO: refactor this code since it's all copy pasta...but scrolling now works!
@@ -47,7 +49,7 @@ impl Scene {
             paused: false,
             game_over: false,
             children: Vec::new(), // children,
-            spirits: Spirits::new(renderer, path, 0, 0), 
+            background: Sprite::new(renderer, path), 
         }
     }
 
@@ -113,12 +115,12 @@ impl Displayable for Scene {
         // Nothing to do for the background at this point sucka.
         // TODO
     }
-
     fn paint(&self, renderer: &mut Renderer) {
-        self.spirits.paint(renderer);
+        self.background.paint(renderer);
 
         for child in &self.children {
             child.borrow_mut().paint(renderer);
         }
     }
 }
+
