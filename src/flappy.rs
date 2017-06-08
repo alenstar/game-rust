@@ -18,6 +18,9 @@ use sprite::Sprite;
 use scene::Scene;
 
 pub struct Bird {
+    speed: f32,
+    xaccelerate: f32,
+    yaccelerate: f32,
     sprite: Sprite,
 }
 
@@ -25,6 +28,9 @@ impl Bird {
     // add code here
     pub fn new(renderer: &Renderer) -> Bird {
         Bird {
+            speed: 0.0,
+            xaccelerate: 0.0,
+            yaccelerate: 0.0,
             sprite: Sprite::new(renderer,
                                 &["res/imgs/bird_frame_1.png",
                                   "res/imgs/bird_frame_2.png",

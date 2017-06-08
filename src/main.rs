@@ -7,6 +7,7 @@ pub mod scene;
 pub mod sprite;
 pub mod display;
 pub mod flappy;
+pub mod scheduler;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -25,7 +26,7 @@ use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 use sdl2::mixer::{INIT_OGG, AUDIO_S16LSB};
 
-use scene::Scene;
+//use scene::Scene;
 use flappy::{Bird, FlappyScene};
 use display::Displayable;
 
