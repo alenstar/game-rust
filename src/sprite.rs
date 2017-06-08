@@ -18,77 +18,96 @@ use node::Node;
 use display::Displayable;
 
 pub struct Sprite {
-    /*
-    x: i32,
-    y: i32,
-    w: u32,
-    h: u32,
-    //visible: bool,
-    //texture: Rc<Texture>,
-    */
+    // x: i32,
+    // y: i32,
+    // w: u32,
+    // h: u32,
+    // visible: bool,
+    // texture: Rc<Texture>,
+    // /
+    // cursor: u32,
+    // nodes: Vec<Rc<Node>>,
+    running: bool,
     node: Node,
 }
 
 impl Sprite {
-    pub fn new(renderer: &Renderer, path: &str) -> Sprite {
+    pub fn new(renderer: &Renderer, paths: &[&str]) -> Sprite {
+        // let mut children: Vec<Rc<Node>> = Vec::new();
         Sprite {
-            node: Node::new(renderer, path),
-        }
-    }
-/*
-    pub fn reset(&mut self, start_x: i32, start_y: i32) {
-        self.x = start_x;
-        self.y = start_y;
-    }
-    
-    pub fn reseize(&mut self, w: u32, h: u32) {
-        self.w = w;
-        self.h = h;
-    }
-
-    pub fn blend_mode_none(&mut self) {
-        Rc::get_mut(&mut self.texture).unwrap()
-            .set_blend_mode(BlendMode::None); 
-    }
-    pub fn blend_mode_add(&mut self) {
-        Rc::get_mut(&mut self.texture).unwrap()
-            .set_blend_mode(BlendMode::Add); 
-    }
-    pub fn blend_mode_mod(&mut self) {
-        Rc::get_mut(&mut self.texture).unwrap()
-            .set_blend_mode(BlendMode::Mod); 
-    }
-    pub fn blend_mode_blend(&mut self) {
-        Rc::get_mut(&mut self.texture).unwrap()
-            .set_blend_mode(BlendMode::Blend); 
-    }
-    */
-}
-
-/*
-impl Displayable for Sprite {
-    fn on_key_down(&mut self, event: &Event) {
-        match event {
-            &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
-                //self.reset();
-            }
-            _ => {}
+            running: false,
+            node: Node::new(renderer, paths),
         }
     }
 
-    fn update(&mut self) {
-        // TODO 
+    pub fn start(&mut self) {
+        self.running = true;
     }
 
-    fn paint(&self, renderer: &mut Renderer) {
-        let rect = Rect::new(self.x, self.y, self.w, self.h);
-        renderer
-            .copy_ex(&self.texture, 
-                     None, Some(rect), 0.0, None, false, false)
-            .expect("Single star particle should have rendered.");
+    pub fn stop(&mut self) {
+        self.running = false;
+        // self.node.cursor = 0;
     }
+
+    pub fn update(&mut self) {
+        if self.running {
+            self.node.update();
+        }
+    }
+
+    // pub fn reset(&mut self, start_x: i32, start_y: i32) {
+    // self.x = start_x;
+    // self.y = start_y;
+    // }
+    //
+    // pub fn reseize(&mut self, w: u32, h: u32) {
+    // self.w = w;
+    // self.h = h;
+    // }
+    //
+    // pub fn blend_mode_none(&mut self) {
+    // Rc::get_mut(&mut self.texture).unwrap()
+    // .set_blend_mode(BlendMode::None);
+    // }
+    // pub fn blend_mode_add(&mut self) {
+    // Rc::get_mut(&mut self.texture).unwrap()
+    // .set_blend_mode(BlendMode::Add);
+    // }
+    // pub fn blend_mode_mod(&mut self) {
+    // Rc::get_mut(&mut self.texture).unwrap()
+    // .set_blend_mode(BlendMode::Mod);
+    // }
+    // pub fn blend_mode_blend(&mut self) {
+    // Rc::get_mut(&mut self.texture).unwrap()
+    // .set_blend_mode(BlendMode::Blend);
+    // }
+    //
 }
-*/
+
+// impl Displayable for Sprite {
+// fn on_key_down(&mut self, event: &Event) {
+// match event {
+// &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
+// self.reset();
+// }
+// _ => {}
+// }
+// }
+//
+// fn update(&mut self) {
+// TODO
+// self.cursor += 1;
+// }
+//
+// fn paint(&self, renderer: &mut Renderer) {
+// let rect = Rect::new(self.x, self.y, self.w, self.h);
+// renderer
+// .copy_ex(&self.texture,
+// None, Some(rect), 0.0, None, false, false)
+// .expect("Single star particle should have rendered.");
+// }
+// }
+//
 
 impl Deref for Sprite {
     type Target = Node;

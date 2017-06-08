@@ -14,7 +14,7 @@ use std::rc::Rc;
 use sdl2::keyboard::Keycode;
 
 use display::Displayable;
-use sprite::Sprite;
+use node::Node;
 
 pub struct Scene {
     // Internal state.
@@ -27,21 +27,21 @@ pub struct Scene {
     // And additionally control generically as Displayable objects.
     // flappy: Rc<RefCell<Bird>>,
     // pipes: Rc<RefCell<Pipes>>,
-
+    //
     // Generic.
     children: Vec<Rc<RefCell<Displayable>>>,
-    background: Sprite,
+    background: Node,
 }
 
 // TODO: refactor this code since it's all copy pasta...but scrolling now works!
 impl Scene {
     pub fn new(renderer: &Renderer, path: &str) -> Scene {
-        //let flappy = Rc::new(RefCell::new(Bird::new(renderer)));
-        //let pipes = Rc::new(RefCell::new(Pipes::new(renderer)));
+        // let flappy = Rc::new(RefCell::new(Bird::new(renderer)));
+        // let pipes = Rc::new(RefCell::new(Pipes::new(renderer)));
 
-        //let mut children: Vec<Rc<RefCell<Displayable>>> = Vec::new();
-        //children.push(flappy.clone());
-        //children.push(pipes.clone());
+        // let mut children: Vec<Rc<RefCell<Displayable>>> = Vec::new();
+        // children.push(flappy.clone());
+        // children.push(pipes.clone());
 
         Scene {
             // flappy: flappy.clone(),
@@ -49,7 +49,7 @@ impl Scene {
             paused: false,
             game_over: false,
             children: Vec::new(), // children,
-            background: Sprite::new(renderer, path), 
+            background: Node::new(renderer, &[path]),
         }
     }
 
@@ -81,11 +81,11 @@ impl Displayable for Scene {
             _ => {}
         }
 
-        if self.paused{
+        if self.paused {
             return;
         }
 
-        //TODO: allow cancel propagating events based on logic in parent.
+        // TODO: allow cancel propagating events based on logic in parent.
         for child in &self.children {
             child.borrow_mut().on_key_down(event);
         }
@@ -95,22 +95,23 @@ impl Displayable for Scene {
         if self.paused {
             return;
         }
-
-        //TODO: allow cancel propagating events based on logic in parent.
+        self.background.update();
+        // TODO: allow cancel propagating events based on logic in parent.
         for child in &self.children {
             child.borrow_mut().update();
         }
 
         // Introduce a scope to puposefully limit the scope of the borrows.
-        /* {
-            let ref mut bird = *self.flappy.borrow_mut();
-            self.pipes.borrow().touch(bird);
+        // {
+        // let ref mut bird = *self.flappy.borrow_mut();
+        // self.pipes.borrow().touch(bird);
+        //
+        // if bird.is_dead() {
+        // TODO:
+        // self.game_over = true;
+        // }
+        // }
 
-            if bird.is_dead() {
-                // TODO:
-                self.game_over = true;
-            }
-        } */
 
         // Nothing to do for the background at this point sucka.
         // TODO
@@ -123,4 +124,3 @@ impl Displayable for Scene {
         }
     }
 }
-

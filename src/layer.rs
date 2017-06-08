@@ -29,41 +29,40 @@ impl Layer {
         Layer {
             visible: true,
             children: Vec::new(),
-            node: Node::new(renderer, path),
+            node: Node::new(renderer, &[path]),
         }
     }
 }
 
-/*
-impl Displayable for Scene {
-    fn on_key_down(&mut self, event: &Event) {
-        //TODO: allow cancel propagating events based on logic in parent.
-        for child in &self.children {
-            child.borrow_mut().on_key_down(event);
-        }
-    }
-
-    fn update(&mut self) {
-        //TODO: allow cancel propagating events based on logic in parent.
-        for child in &self.children {
-            child.borrow_mut().update();
-        }
-
-        // Nothing to do for the background at this point sucka.
-        // TODO
-    }
-
-    fn paint(&self, renderer: &mut Renderer) {
-        if self.visible {
-            self.spirits.paint(renderer);
-
-            for child in &self.children {
-                child.borrow_mut().paint(renderer);
-            }
-        }
-    }
-}
-*/
+// impl Displayable for Scene {
+// fn on_key_down(&mut self, event: &Event) {
+// TODO: allow cancel propagating events based on logic in parent.
+// for child in &self.children {
+// child.borrow_mut().on_key_down(event);
+// }
+// }
+//
+// fn update(&mut self) {
+// TODO: allow cancel propagating events based on logic in parent.
+// for child in &self.children {
+// child.borrow_mut().update();
+// }
+//
+// Nothing to do for the background at this point sucka.
+// TODO
+// }
+//
+// fn paint(&self, renderer: &mut Renderer) {
+// if self.visible {
+// self.spirits.paint(renderer);
+//
+// for child in &self.children {
+// child.borrow_mut().paint(renderer);
+// }
+// }
+// }
+// }
+//
 
 impl Deref for Layer {
     type Target = Node;

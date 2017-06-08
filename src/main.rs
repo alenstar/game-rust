@@ -6,6 +6,7 @@ pub mod layer;
 pub mod scene;
 pub mod sprite;
 pub mod display;
+pub mod flappy;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -14,6 +15,7 @@ use std::process;
 use std::path::Path;
 use std::time::Duration;
 use std::thread;
+use std::rc::Rc;
 
 use sdl2::pixels::Color;
 use sdl2::image::{INIT_PNG, INIT_JPG};
@@ -24,6 +26,7 @@ use sdl2::render::Renderer;
 use sdl2::mixer::{INIT_OGG, AUDIO_S16LSB};
 
 use scene::Scene;
+use flappy::{Bird, FlappyScene};
 use display::Displayable;
 
 macro_rules! rect(
@@ -46,12 +49,11 @@ pub fn main() {
     // let _ = sdl2::mixer::open_audio(frequency, format, channels, chunk_size).unwrap();
     // sdl2::mixer::allocate_channels(0);
 
-    let window = video_subsystem
-        .window("Chinese chess Rust", 800, 600)
-        .position_centered()
-        .opengl()
-        .build()
-        .unwrap();
+    let window = video_subsystem.window("Chinese chess Rust", 800, 600)
+                                .position_centered()
+                                .opengl()
+                                .build()
+                                .unwrap();
 
     let _image_context = sdl2::image::init(INIT_PNG | INIT_JPG).unwrap();
 
@@ -70,8 +72,10 @@ pub fn main() {
     // thread::sleep(Duration::from_millis(3000));
 
     // Testing a bird
-    let mut scene = Scene::new(&mut renderer, "res/imgs/background.png");
-    // let mut scene = Chessboard::new(&mut renderer);
+    // let mut scene = Scene::new(&mut renderer, "res/imgs/background.png");
+    let mut scene = FlappyScene::new(&mut renderer);
+    // let mut bird = Bird::new(&mut renderer);
+    // scene.add_child(Rc::new(bird));
 
     let mut main_loop = || {
         for event in event_pump.poll_iter() {
@@ -136,16 +140,15 @@ fn draw_title(title: &str, renderer: &mut Renderer) {
 
     // Render the surface
     let surface = font.render(title)
-        .blended(Color::RGBA(255, 87, 0, 255))
-        .unwrap();
+                      .blended(Color::RGBA(255, 87, 0, 255))
+                      .unwrap();
     let mut texture = renderer.create_texture_from_surface(&surface).unwrap();
 
     renderer.set_draw_color(Color::RGBA(0, 217, 255, 255));
     renderer.clear();
 
-    renderer
-        .copy(&mut texture, None, Some(rect!(10, 10, 790, 590)))
-        .unwrap();
+    renderer.copy(&mut texture, None, Some(rect!(10, 10, 790, 590)))
+            .unwrap();
 
     renderer.present();
 }
