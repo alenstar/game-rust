@@ -31,7 +31,7 @@ impl Bird {
         Bird {
             speed: 0.0,
             xaccelerate: 0.0,
-            yaccelerate: 0.0,
+            yaccelerate: 0.2,
             sprite: Sprite::new(renderer,
                                 &["res/imgs/bird_frame_1.png",
                                   "res/imgs/bird_frame_2.png",
@@ -39,11 +39,28 @@ impl Bird {
                                   "res/imgs/bird_frame_4.png"]),
         }
     }
+
+    pub fn jump(&mut self) {
+        self.speed = -8.0;
+    }
 }
 
 impl Displayable for Bird {
     // add code here
+
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
+                self.jump();
+                // self.particles.reset(self.x, self.y);
+            }
+            _ => {}
+        }
+    }
     fn update(&mut self) {
+        let pos = self.sprite.get_position();
+        self.sprite.set_position(pos.0, pos.1 + self.speed as i32);
+        self.speed += self.yaccelerate;
         self.sprite.update();
     }
 
@@ -67,6 +84,7 @@ impl DerefMut for Bird {
 }
 
 pub struct FlappyScene {
+    scroll: bool,
     scroll_step: u32,
     scroll_x1: u32,
     scroll_x2: u32,
@@ -90,17 +108,16 @@ impl FlappyScene {
         let mut scene = Scene::new(renderer, "res/imgs/background.png");
 
         {
-            for i in 3..6 {
+            for i in 1..6 {
                 let mut layer = Rc::new(RefCell::new(Layer::new(renderer,
-                                                                &format!("res/imgs/layer_0{}_1920 \
-                                                                         x 1080.png",
+                                                                &format!("res/imgs/layer_0{}_1920x1080.png",
                                                                         i)
                                                                     [..],
                                                                 w,
                                                                 h)));
-                // if i == 3 {
-                //     layer.borrow_mut().set_scroll(false);
-                // }
+                if i < 4 {
+                    layer.borrow_mut().set_scroll(false);
+                }
                 scene.add_child(layer);
             }
         }
@@ -110,6 +127,7 @@ impl FlappyScene {
         scene.set_interval(0.5);
 
         FlappyScene {
+            scroll: false,
             scroll_step: 1,
             scroll_x1: 0,
             scroll_x2: w,
@@ -117,7 +135,6 @@ impl FlappyScene {
             scroll_w2: 0,
             width: w,
             height: h,
-            // layer: Layer::new(renderer, "res/imgs/layer_04_1920 x 1080.png", w, h),
             scene: scene,
         }
     }
@@ -148,6 +165,19 @@ impl DerefMut for FlappyScene {
 
 impl Displayable for FlappyScene {
     // add code here
+
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
+                // self.paused = !self.paused;
+            }
+            _ => {}
+        }
+
+        // TODO: allow cancel propagating events based on logic in parent.
+        self.scene.on_key_down(event);
+    }
+
     fn update(&mut self) {
 
         if self.get_elapsed() >= self.get_interval() {
@@ -156,24 +186,26 @@ impl Displayable for FlappyScene {
         }
         self.scene.update();
 
-        let sz = self.get_texture_size(0).unwrap();
-        self.scroll_x1 += self.scroll_step;
-        if self.scroll_x1 > sz.0 {
-            self.scroll_x1 = 0;
-        }
+        if self.scroll {
+            let sz = self.get_texture_size(0).unwrap();
+            self.scroll_x1 += self.scroll_step;
+            if self.scroll_x1 > sz.0 {
+                self.scroll_x1 = 0;
+            }
 
-        if self.scroll_x1 > (sz.0 - self.width) {
-            self.scroll_w1 = sz.0 - self.scroll_x1;
-        } else {
-            self.scroll_w1 = self.width;
-        }
+            if self.scroll_x1 > (sz.0 - self.width) {
+                self.scroll_w1 = sz.0 - self.scroll_x1;
+            } else {
+                self.scroll_w1 = self.width;
+            }
 
-        self.scroll_x2 += self.scroll_step;
-        if (self.scroll_x2 - self.width) > sz.0 {
-            self.scroll_x2 = self.width;
-        }
+            self.scroll_x2 += self.scroll_step;
+            if (self.scroll_x2 - self.width) > sz.0 {
+                self.scroll_x2 = self.width;
+            }
 
-        self.scroll_w2 = self.width - self.scroll_w1;
+            self.scroll_w2 = self.width - self.scroll_w1;
+        }
     }
 
     fn paint(&self, renderer: &mut Renderer) {
