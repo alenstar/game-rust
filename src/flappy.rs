@@ -98,9 +98,13 @@ impl FlappyScene {
                                                                     [..],
                                                                 w,
                                                                 h)));
+                // if i == 3 {
+                //     layer.borrow_mut().set_scroll(false);
+                // }
                 scene.add_child(layer);
             }
         }
+        // let mut layer = scene.get_child(0).unwrap().borrow_mut() as &mut Layer;
 
         scene.add_child(bird);
         scene.set_interval(0.5);

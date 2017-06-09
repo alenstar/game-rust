@@ -57,6 +57,14 @@ impl Scene {
         self.children.push(child);
     }
 
+    pub fn get_child(&self, idx: u32) -> Result<&Rc<RefCell<Displayable>>, &str> {
+        if (idx as usize) < self.children.len() {
+            Ok(&self.children[idx as usize])
+        } else {
+            Err("array out of bounds")
+        }
+    }
+
     pub fn paint_child(&self, renderer: &mut Renderer) {
         for child in &self.children {
             child.borrow_mut().paint(renderer);
@@ -106,18 +114,6 @@ impl Displayable for Scene {
         for child in &self.children {
             child.borrow_mut().update();
         }
-
-        // Introduce a scope to puposefully limit the scope of the borrows.
-        // {
-        // let ref mut bird = *self.flappy.borrow_mut();
-        // self.pipes.borrow().touch(bird);
-        //
-        // if bird.is_dead() {
-        // TODO:
-        // self.game_over = true;
-        // }
-        // }
-
 
         // Nothing to do for the background at this point sucka.
         // TODO

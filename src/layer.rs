@@ -20,6 +20,7 @@ use display::Displayable;
 
 pub struct Layer {
     visible: bool,
+    scroll: bool,
     scroll_step: i32,
     scroll_x1: i32,
     scroll_x2: i32,
@@ -33,7 +34,8 @@ impl Layer {
     pub fn new(renderer: &Renderer, path: &str, w: u32, h: u32) -> Layer {
         Layer {
             visible: true,
-            scroll_step: 0,
+            scroll: true,
+            scroll_step: 1,
             scroll_x1: 0,
             scroll_x2: w as i32,
             width: w,
@@ -41,6 +43,22 @@ impl Layer {
             children: Vec::new(),
             node: Node::new(renderer, &[path]),
         }
+    }
+
+    pub fn set_scroll(&mut self, enable: bool) {
+        self.scroll = enable;
+    }
+
+    pub fn get_scroll(&self) -> bool {
+        self.scroll
+    }
+
+    pub fn set_visible(&mut self, enable: bool) {
+        self.visible = enable;
+    }
+
+    pub fn get_visible(&self) -> bool {
+        self.visible
     }
 }
 
@@ -53,37 +71,45 @@ impl Displayable for Layer {
     }
 
     fn update(&mut self) {
-        self.scroll_x1 -= self.scroll_step;
-        self.scroll_x2 -= self.scroll_step;
+        if self.scroll {
+            self.scroll_x1 -= self.scroll_step;
+            self.scroll_x2 -= self.scroll_step;
 
-        if self.scroll_x1 < -1 * self.width as i32 {
-            self.scroll_x1 = self.width as i32;
-        }
-        if self.scroll_x2 < -1 * self.width as i32 {
-            self.scroll_x2 = self.scroll_x1 + self.width as i32 - self.scroll_step;
-        }
+            if self.scroll_x1 < -1 * (self.width as i32 - self.scroll_step) {
+                self.scroll_x1 = self.width as i32;
+            }
+            if self.scroll_x2 < -1 * (self.width as i32 - self.scroll_step) {
+                self.scroll_x2 = self.scroll_x1 + self.width as i32;
+            }
 
-        for child in &self.children {
-            child.borrow_mut().update();
+            for child in &self.children {
+                child.borrow_mut().update();
+            }
         }
-        // Nothing to do for the background at this point sucka.
-        // TODO
     }
 
     fn paint(&self, renderer: &mut Renderer) {
         if self.visible {
-            let mut current_texture = self.get_texture(0).unwrap();
-            renderer.copy(&mut current_texture,
-                          None,
-                          Some(Rect::new(self.scroll_x1, 0, self.width, self.height)))
-                    .expect("layer should have rendered.");
+            if self.scroll {
+                let mut current_texture = self.get_texture(0).unwrap();
+                renderer.copy(&mut current_texture,
+                              None,
+                              Some(Rect::new(self.scroll_x1, 0, self.width, self.height)))
+                        .expect("layer should have rendered.");
 
 
-            renderer.copy(&mut current_texture,
-                          None,
-                          Some(Rect::new(self.scroll_x2, 0, self.width, self.height)))
-                    .expect("layer should have rendered.");
-
+                renderer.copy(&mut current_texture,
+                              None,
+                              Some(Rect::new(self.scroll_x2, 0, self.width, self.height)))
+                        .expect("layer should have rendered.");
+            } else {
+                // self.node.paint(renderer);
+                let mut current_texture = self.get_texture(0).unwrap();
+                renderer.copy(&mut current_texture,
+                              None,
+                              Some(Rect::new(0, 0, self.width, self.height)))
+                        .expect("layer should have rendered.");
+            }
             for child in &self.children {
                 child.borrow_mut().paint(renderer);
             }
