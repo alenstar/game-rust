@@ -55,8 +55,62 @@ impl Node {
         }
     }
 
+    pub fn get_elapsed(&self) -> f32 {
+        self.lasttime.elapsed().unwrap().to_f32()
+    }
+
+    pub fn update_time(&mut self) {
+        self.lasttime = SystemTime::now();
+    }
+
+    pub fn cursor_decr(&mut self) -> u32 {
+        self.cursor -= 1;
+        self.cursor
+    }
+
+    pub fn cursor_incr(&mut self) -> u32 {
+        self.cursor += 1;
+        self.cursor
+    }
+
+    pub fn set_cursor(&mut self, cur: u32) {
+        self.cursor = cur;
+    }
+
+    pub fn get_cursor(&self) -> u32 {
+        self.cursor
+    }
+
     pub fn set_interval(&mut self, secs: f32) {
         self.interval = secs;
+    }
+
+    pub fn get_interval(&self) -> f32 {
+        self.interval
+    }
+
+    pub fn get_width(&self) -> u32 {
+        self.w
+    }
+
+    pub fn get_height(&self) -> u32 {
+        self.h
+    }
+
+    pub fn get_texture(&self, idx: u32) -> Result<&Texture, &str> {
+        if (idx as usize) < self.textures.len() {
+            Ok(&self.textures[idx as usize])
+        } else {
+            Err("array out of bounds")
+        }
+    }
+    pub fn get_texture_size(&self, idx: u32) -> Result<(u32, u32), &str> {
+        if (idx as usize) < self.textures.len() {
+            let tquery = self.textures[idx as usize].query();
+            Ok((tquery.width, tquery.height))
+        } else {
+            Err("array out of bounds")
+        }
     }
 
     pub fn reset(&mut self, start_x: i32, start_y: i32) {

@@ -57,6 +57,12 @@ impl Scene {
         self.children.push(child);
     }
 
+    pub fn paint_child(&self, renderer: &mut Renderer) {
+        for child in &self.children {
+            child.borrow_mut().paint(renderer);
+        }
+    }
+
     pub fn restart(&mut self) {
         // Reset all assets.
         // self.flappy.borrow_mut().restart();
@@ -122,5 +128,20 @@ impl Displayable for Scene {
         for child in &self.children {
             child.borrow_mut().paint(renderer);
         }
+    }
+}
+
+
+impl Deref for Scene {
+    type Target = Node;
+
+    fn deref<'a>(&'a self) -> &'a Node {
+        &self.background
+    }
+}
+
+impl DerefMut for Scene {
+    fn deref_mut<'a>(&'a mut self) -> &'a mut Node {
+        &mut self.background
     }
 }

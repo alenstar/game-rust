@@ -26,7 +26,7 @@ use sdl2::rect::Rect;
 use sdl2::render::Renderer;
 use sdl2::mixer::{INIT_OGG, AUDIO_S16LSB};
 
-//use scene::Scene;
+// use scene::Scene;
 use flappy::{Bird, FlappyScene};
 use display::Displayable;
 
@@ -74,7 +74,7 @@ pub fn main() {
 
     // Testing a bird
     // let mut scene = Scene::new(&mut renderer, "res/imgs/background.png");
-    let mut scene = FlappyScene::new(&mut renderer);
+    let mut scene = FlappyScene::new(&mut renderer, 800, 600);
     // let mut bird = Bird::new(&mut renderer);
     // scene.add_child(Rc::new(bird));
 

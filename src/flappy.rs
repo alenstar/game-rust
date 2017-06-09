@@ -66,20 +66,49 @@ impl DerefMut for Bird {
 }
 
 pub struct FlappyScene {
+    scroll_x1: u32,
+    scroll_x2: u32,
+    scroll_w1: u32,
+    scroll_w2: u32,
+    speed: f32,
+    slice_number: u8,
+    scroll_index: u8,
+    width: u32,
+    height: u32,
     scene: Scene,
 }
 
 impl FlappyScene {
     // add code here
-    pub fn new(renderer: &Renderer) -> FlappyScene {
+    pub fn new(renderer: &Renderer, w: u32, h: u32) -> FlappyScene {
         let mut bird = Rc::new(RefCell::new(Bird::new(renderer)));
         bird.borrow_mut().set_interval(0.3);
         bird.borrow_mut().start();
 
         let mut scene = Scene::new(renderer, "res/imgs/background.png");
         scene.add_child(bird);
+        scene.set_interval(0.3);
 
-        FlappyScene { scene: scene }
+        FlappyScene {
+            scroll_x1: 0,
+            scroll_x2: w,
+            scroll_w1: 0,
+            scroll_w2: 0,
+            speed: 2.0,
+            slice_number: 3,
+            scroll_index: 0,
+            width: w,
+            height: h,
+            scene: scene,
+        }
+    }
+
+    pub fn start(&mut self) {
+        // TODO
+    }
+
+    pub fn stop(&mut self) {
+        // TODO
     }
 }
 
@@ -98,14 +127,58 @@ impl DerefMut for FlappyScene {
     }
 }
 
-// impl Displayable for FlappyScene {
-// add code here
-// fn update(&mut self) {
-// self.scene.update();
-// }
-//
-// fn paint(&self, renderer: &mut Renderer) {
-// self.scene.paint(renderer);
-// }
-// }
-//
+impl Displayable for FlappyScene {
+    // add code here
+    fn update(&mut self) {
+
+        if self.get_elapsed() >= self.get_interval() {
+            // TODO
+            self.cursor_incr();
+            self.update_time();
+        }
+        self.scene.update();
+
+        let sz = self.get_texture_size(0).unwrap();
+
+        self.scroll_x1 += 1;
+        if self.scroll_x1 > sz.0 {
+            println!("scroll_x1 end {:?}", (self.scroll_x1, self.scroll_x2));
+            self.scroll_x1 = 0;
+        }
+
+        if self.scroll_x1 > (sz.0 - self.width) {
+            self.scroll_w1 = sz.0 - self.scroll_x1;
+        } else {
+            self.scroll_w1 = self.width;
+        }
+
+        self.scroll_x2 += 1;
+        if (self.scroll_x2 - self.width) > sz.0 {
+            println!("scroll_x2 end {:?}", (self.scroll_x1, self.scroll_x2));
+            self.scroll_x2 = self.width;
+        }
+
+        self.scroll_w2 = self.width - self.scroll_w1;
+    }
+
+    fn paint(&self, renderer: &mut Renderer) {
+
+        let mut current_texture = self.get_texture(0).unwrap();
+        renderer.copy(&mut current_texture,
+                      Some(Rect::new(self.scroll_x1 as i32, 0, self.scroll_w1, self.height)),
+                      Some(Rect::new(0, 0, self.scroll_w1, self.height)))
+                .expect("background should have rendered.");
+
+        if self.scroll_w2 > 0 {
+            renderer.copy(&mut current_texture,
+                          Some(Rect::new(0, 0, self.scroll_w2, self.height)),
+                          Some(Rect::new((self.width - self.scroll_w2) as i32,
+                                         0,
+                                         self.scroll_w2,
+                                         self.height)))
+                    .expect("background should have rendered.");
+        }
+
+        self.scene.paint_child(renderer);
+    }
+}
