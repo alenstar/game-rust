@@ -113,14 +113,22 @@ impl Node {
         }
     }
 
-    pub fn reset(&mut self, start_x: i32, start_y: i32) {
-        self.x = start_x;
-        self.y = start_y;
+    pub fn set_position(&mut self, x: i32, y: i32) {
+        self.x = x;
+        self.y = y;
     }
 
-    pub fn reseize(&mut self, w: u32, h: u32) {
+    pub fn get_position(&self) -> (i32, i32) {
+        (self.x, self.y)
+    }
+
+    pub fn set_size(&mut self, w: u32, h: u32) {
         self.w = w;
         self.h = h;
+    }
+
+    pub fn get_size(&self) -> (u32, u32) {
+        (self.w, self.h)
     }
 
     pub fn update(&mut self) {

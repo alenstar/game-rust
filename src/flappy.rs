@@ -16,6 +16,7 @@ use sdl2::keyboard::Keycode;
 use display::Displayable;
 use sprite::Sprite;
 use scene::Scene;
+use layer::Layer;
 
 pub struct Bird {
     speed: f32,
@@ -71,11 +72,9 @@ pub struct FlappyScene {
     scroll_x2: u32,
     scroll_w1: u32,
     scroll_w2: u32,
-    speed: f32,
-    slice_number: u8,
-    scroll_index: u8,
     width: u32,
     height: u32,
+    // layer: Layer,
     scene: Scene,
 }
 
@@ -84,11 +83,27 @@ impl FlappyScene {
     pub fn new(renderer: &Renderer, w: u32, h: u32) -> FlappyScene {
         let mut bird = Rc::new(RefCell::new(Bird::new(renderer)));
         bird.borrow_mut().set_interval(0.3);
+        let sz = bird.borrow_mut().get_size();
+        bird.borrow_mut().set_position(w as i32 / 2 - sz.0 as i32, h as i32 / 2 - sz.1 as i32);
         bird.borrow_mut().start();
 
         let mut scene = Scene::new(renderer, "res/imgs/background.png");
+
+        {
+            for i in 3..6 {
+                let mut layer = Rc::new(RefCell::new(Layer::new(renderer,
+                                                                &format!("res/imgs/layer_0{}_1920 \
+                                                                         x 1080.png",
+                                                                        i)
+                                                                    [..],
+                                                                w,
+                                                                h)));
+                scene.add_child(layer);
+            }
+        }
+
         scene.add_child(bird);
-        scene.set_interval(0.3);
+        scene.set_interval(0.5);
 
         FlappyScene {
             scroll_step: 1,
@@ -96,11 +111,9 @@ impl FlappyScene {
             scroll_x2: w,
             scroll_w1: 0,
             scroll_w2: 0,
-            speed: 2.0,
-            slice_number: 3,
-            scroll_index: 0,
             width: w,
             height: h,
+            // layer: Layer::new(renderer, "res/imgs/layer_04_1920 x 1080.png", w, h),
             scene: scene,
         }
     }
@@ -134,14 +147,12 @@ impl Displayable for FlappyScene {
     fn update(&mut self) {
 
         if self.get_elapsed() >= self.get_interval() {
-            // TODO
             self.cursor_incr();
             self.update_time();
         }
         self.scene.update();
 
         let sz = self.get_texture_size(0).unwrap();
-
         self.scroll_x1 += self.scroll_step;
         if self.scroll_x1 > sz.0 {
             self.scroll_x1 = 0;
@@ -178,6 +189,8 @@ impl Displayable for FlappyScene {
                                          self.height)))
                     .expect("background should have rendered.");
         }
+
+        // self.layer.paint(renderer);
 
         self.scene.paint_child(renderer);
     }

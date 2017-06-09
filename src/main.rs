@@ -77,7 +77,7 @@ pub fn main() {
     let mut scene = FlappyScene::new(&mut renderer, 800, 600);
     // let mut bird = Bird::new(&mut renderer);
     // scene.add_child(Rc::new(bird));
-
+    scene.paint(&mut renderer);
     let mut main_loop = || {
         for event in event_pump.poll_iter() {
             match event {
