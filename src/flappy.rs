@@ -66,6 +66,7 @@ impl DerefMut for Bird {
 }
 
 pub struct FlappyScene {
+    scroll_step: u32,
     scroll_x1: u32,
     scroll_x2: u32,
     scroll_w1: u32,
@@ -90,6 +91,7 @@ impl FlappyScene {
         scene.set_interval(0.3);
 
         FlappyScene {
+            scroll_step: 1,
             scroll_x1: 0,
             scroll_x2: w,
             scroll_w1: 0,
@@ -140,9 +142,8 @@ impl Displayable for FlappyScene {
 
         let sz = self.get_texture_size(0).unwrap();
 
-        self.scroll_x1 += 1;
+        self.scroll_x1 += self.scroll_step;
         if self.scroll_x1 > sz.0 {
-            println!("scroll_x1 end {:?}", (self.scroll_x1, self.scroll_x2));
             self.scroll_x1 = 0;
         }
 
@@ -152,9 +153,8 @@ impl Displayable for FlappyScene {
             self.scroll_w1 = self.width;
         }
 
-        self.scroll_x2 += 1;
+        self.scroll_x2 += self.scroll_step;
         if (self.scroll_x2 - self.width) > sz.0 {
-            println!("scroll_x2 end {:?}", (self.scroll_x1, self.scroll_x2));
             self.scroll_x2 = self.width;
         }
 
