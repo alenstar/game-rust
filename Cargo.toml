@@ -10,3 +10,4 @@ features = ["ttf","image","gfx","mixer"]
 
 [dependencies]
 rand = "0.3"
+plist = "0.2"
