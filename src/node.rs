@@ -55,6 +55,24 @@ impl Node {
         }
     }
 
+    pub fn new_from(texture: Texture) -> Node {
+        let mut rc_textures: Vec<Rc<Texture>> = Vec::new();
+        let rc_texture = Rc::new(texture);
+        rc_textures.push(rc_texture);
+        let tquery = rc_textures[0].query();
+        Node {
+            x: 0,
+            y: 0,
+            w: tquery.width,
+            h: tquery.height,
+            interval: 0.0,
+            lasttime: SystemTime::now(),
+            cursor: 0,
+            visible: true,
+            textures: rc_textures,
+        }
+    }
+
     pub fn get_elapsed(&self) -> f32 {
         self.lasttime.elapsed().unwrap().to_f32()
     }
