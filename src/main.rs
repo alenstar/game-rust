@@ -8,6 +8,7 @@ pub mod sprite;
 pub mod display;
 pub mod flappy;
 pub mod scheduler;
+pub mod atlas;
 
 #[cfg(target_os = "emscripten")]
 pub mod emscripten;
@@ -29,6 +30,7 @@ use sdl2::mixer::{INIT_OGG, AUDIO_S16LSB};
 // use scene::Scene;
 use flappy::{Bird, FlappyScene};
 use display::Displayable;
+use atlas::Atlas;
 
 macro_rules! rect(
     ($x:expr, $y:expr, $w:expr, $h:expr) => (
@@ -77,6 +79,7 @@ pub fn main() {
     let mut scene = FlappyScene::new(&mut renderer, 800, 600);
     // let mut bird = Bird::new(&mut renderer);
     // scene.add_child(Rc::new(bird));
+    scene.start();
     scene.paint(&mut renderer);
     let mut main_loop = || {
         for event in event_pump.poll_iter() {

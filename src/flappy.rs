@@ -18,6 +18,7 @@ use display::Displayable;
 use sprite::Sprite;
 use scene::Scene;
 use layer::Layer;
+use atlas::Atlas;
 
 pub struct Bird {
     speed: f32,
@@ -94,6 +95,8 @@ pub struct FlappyScene {
     scroll_w2: u32,
     width: u32,
     height: u32,
+
+    atlas: Atlas,
     // layer: Layer,
     scene: Scene,
 }
@@ -137,12 +140,16 @@ impl FlappyScene {
             scroll_w2: 0,
             width: w,
             height: h,
+            atlas: Atlas::new(renderer, "res/atlas.png", "res/atlas.txt"),
             scene: scene,
         }
     }
 
     pub fn start(&mut self) {
         // TODO
+        self.atlas
+            .select_rect(&("text_game_over".to_string()))
+            .set_position(&("text_game_over".to_string()), 0, 0);
     }
 
     pub fn stop(&mut self) {
@@ -231,6 +238,7 @@ impl Displayable for FlappyScene {
         // self.layer.paint(renderer);
 
         self.scene.paint_child(renderer);
+        self.atlas.paint(renderer);
     }
 }
 

@@ -2,6 +2,7 @@ extern crate sdl2;
 
 pub mod atlas;
 pub mod node;
+pub mod display;
 use std::collections::HashMap;
 
 
