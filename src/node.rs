@@ -169,6 +169,16 @@ impl Node {
                 .expect("Single star particle should have rendered.");
     }
 
+    pub fn hide<'a>(&'a mut self) -> &'a mut Node {
+        self.visible = false;
+        self
+    }
+
+    pub fn show<'a>(&'a mut self) -> &'a mut Node {
+        self.visible = true;
+        self
+    }
+
     pub fn blend_mode_none(&mut self) {
         for child in &mut self.textures {
             // child.borrow_mut().update();

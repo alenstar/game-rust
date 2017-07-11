@@ -141,3 +141,34 @@ impl DerefMut for Scene {
         &mut self.background
     }
 }
+
+
+pub struct SceneManager {
+    scene: Scene,
+}
+
+impl SceneManager {
+    fn replace(&mut self, scene: Scene) {}
+}
+
+impl Displayable for SceneManager {
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
+                // TODO
+            }
+            _ => {}
+        }
+        self.on_key_down(event);
+    }
+
+    fn update(&mut self) {
+        self.scene.update();
+
+        // Nothing to do for the background at this point sucka.
+        // TODO
+    }
+    fn paint(&self, renderer: &mut Renderer) {
+        self.scene.paint(renderer);
+    }
+}

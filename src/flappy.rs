@@ -25,6 +25,7 @@ pub struct Bird {
     xaccelerate: f32,
     yaccelerate: f32,
     sprite: Sprite,
+    died: bool,
 }
 
 impl Bird {
@@ -39,11 +40,16 @@ impl Bird {
                                   "res/imgs/bird_frame_2.png",
                                   "res/imgs/bird_frame_3.png",
                                   "res/imgs/bird_frame_4.png"]),
+            died: false,
         }
     }
 
     pub fn jump(&mut self) {
         self.speed = -8.0;
+    }
+
+    pub fn is_died(&self) -> bool {
+        self.died
     }
 }
 
@@ -86,6 +92,13 @@ impl DerefMut for Bird {
 }
 
 
+#[derive(Debug)]
+enum GameStatus {
+    STOPED,
+    PAUSED,
+    RUNNING,
+}
+
 pub struct FlappyScene {
     scroll: bool,
     scroll_step: u32,
@@ -96,20 +109,15 @@ pub struct FlappyScene {
     width: u32,
     height: u32,
 
+    state: GameStatus,
     atlas: Atlas,
-    // layer: Layer,
+    bird: Bird,
     scene: Scene,
 }
 
 impl FlappyScene {
     // add code here
     pub fn new(renderer: &Renderer, w: u32, h: u32) -> FlappyScene {
-        let mut bird = Rc::new(RefCell::new(Bird::new(renderer)));
-        bird.borrow_mut().set_interval(0.3);
-        let sz = bird.borrow_mut().get_size();
-        bird.borrow_mut().set_position(w as i32 / 2 - sz.0 as i32, h as i32 / 2 - sz.1 as i32);
-        bird.borrow_mut().start();
-
         let mut scene = Scene::new(renderer, "res/imgs/background.png");
 
         {
@@ -128,7 +136,7 @@ impl FlappyScene {
         }
         // let mut layer = scene.get_child(0).unwrap().borrow_mut() as &mut Layer;
 
-        scene.add_child(bird);
+        // scene.add_child(bird);
         scene.set_interval(0.5);
 
         FlappyScene {
@@ -140,20 +148,33 @@ impl FlappyScene {
             scroll_w2: 0,
             width: w,
             height: h,
+            state: GameStatus::STOPED,
             atlas: Atlas::new(renderer, "res/atlas.png", "res/atlas.txt"),
+            bird: Bird::new(renderer),
             scene: scene,
         }
     }
 
     pub fn start(&mut self) {
-        // TODO
+        // self.atlas.hide();
         self.atlas
-            .select_rect(&("text_game_over".to_string()))
-            .set_position(&("text_game_over".to_string()), 0, 0);
+            .select_rect(&("button_play".to_string()))
+            .set_position(&("button_play".to_string()), 0, 0);
+
+        self.bird.set_interval(0.3);
+        let sz = self.bird.get_size();
+        self.bird.set_position(self.width as i32 / 2 - sz.0 as i32,
+                               self.height as i32 / 2 - sz.1 as i32);
+        self.bird.start();
+        self.bird.show();
     }
 
     pub fn stop(&mut self) {
         // TODO
+        self.bird.hide();
+        self.atlas
+            .select_rect(&("text_game_over".to_string()))
+            .set_position(&("text_game_over".to_string()), 0, 0);
     }
 }
 

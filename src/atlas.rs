@@ -73,10 +73,13 @@ impl Atlas {
         }
     }
 
-    pub fn set_position(&mut self, name: &String, x: i32, y: i32) {
-        let mut a = self.atlas.get_mut(name).unwrap();
-        a.x = x;
-        a.y = y;
+    pub fn set_position(&mut self, name: &String, x: i32, y: i32) -> &mut Atlas {
+        {
+            let mut a = self.atlas.get_mut(name).unwrap();
+            a.x = x;
+            a.y = y;
+        }
+        self
     }
 
     pub fn get_position(&self, name: &String) -> (i32, i32) {
@@ -90,6 +93,16 @@ impl Atlas {
 
     pub fn select_rect(&mut self, name: &String) -> &mut Atlas {
         self.name = name.clone();
+        self
+    }
+
+    pub fn hide<'a>(&'a mut self) -> &'a mut Atlas {
+        self.visible = false;
+        self
+    }
+
+    pub fn show<'a>(&'a mut self) -> &'a mut Atlas {
+        self.visible = true;
         self
     }
 }
