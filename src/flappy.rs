@@ -157,9 +157,19 @@ impl FlappyScene {
 
     pub fn start(&mut self) {
         // self.atlas.hide();
+
+        // self.atlas
+        //     .select_rect(&("button_play".to_string()))
+        //     .set_position(&("button_play".to_string()), 0, 0);
+
+        // self.atlas
+        //     .select_rect(&("text_ready".to_string()))
+        //     .set_position(&("text_ready".to_string()), 0, 100);
+
         self.atlas
-            .select_rect(&("button_play".to_string()))
-            .set_position(&("button_play".to_string()), 0, 0);
+            .select_rect(&("tutorial".to_string()))
+            .set_position(&("tutorial".to_string()), 0, 200);
+
 
         self.bird.set_interval(0.3);
         let sz = self.bird.get_size();
