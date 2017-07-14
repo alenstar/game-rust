@@ -5,6 +5,7 @@ pub mod node;
 pub mod layer;
 pub mod scene;
 pub mod sprite;
+pub mod animation;
 pub mod display;
 pub mod flappy;
 pub mod scheduler;

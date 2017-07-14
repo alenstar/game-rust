@@ -16,6 +16,7 @@ use sdl2::keyboard::Keycode;
 
 use node::Node;
 use display::Displayable;
+use animation::Animation;
 
 pub struct Sprite {
     // x: i32,
@@ -121,4 +122,10 @@ impl DerefMut for Sprite {
     fn deref_mut<'a>(&'a mut self) -> &'a mut Node {
         &mut self.node
     }
+}
+
+
+#[derive(Debug)]
+pub struct SpriteAnimation {
+    animation: Animation,
 }
