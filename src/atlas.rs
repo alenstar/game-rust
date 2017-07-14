@@ -72,7 +72,7 @@ impl TexElement {
             // lasttime: SystemTime::now(),
             // cursor: 0,
             visible: true,
-            rect: Rect::new(0, 0, 0, 0),
+            rect: Rect::new(0, 0, tquery.width, tquery.height),
             texture: Rc::new(texture),
         }
     }
