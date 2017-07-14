@@ -29,6 +29,9 @@ pub struct Node {
 }
 
 impl Node {
+    pub fn load_texture(renderer: &Renderer, path: &str) -> Result<Texture, String> {
+        renderer.load_texture(Path::new(path))
+    }
     pub fn new(renderer: &Renderer, paths: &[&str]) -> Node {
         let mut rc_textures = Vec::new();
 
@@ -55,10 +58,9 @@ impl Node {
         }
     }
 
-    pub fn new_from(texture: Texture) -> Node {
+    pub fn new_from(texture: Rc<Texture>) -> Node {
         let mut rc_textures: Vec<Rc<Texture>> = Vec::new();
-        let rc_texture = Rc::new(texture);
-        rc_textures.push(rc_texture);
+        rc_textures.push(texture);
         let tquery = rc_textures[0].query();
         Node {
             x: 0,

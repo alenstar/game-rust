@@ -30,7 +30,6 @@ use sdl2::mixer::{INIT_OGG, AUDIO_S16LSB};
 // use scene::Scene;
 use flappy::{Bird, FlappyScene};
 use display::Displayable;
-use atlas::Atlas;
 
 macro_rules! rect(
     ($x:expr, $y:expr, $w:expr, $h:expr) => (

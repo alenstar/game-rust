@@ -18,12 +18,22 @@ use sdl2::keyboard::Keycode;
 use node::Node;
 use display::Displayable;
 
+#[derive(Debug, Copy, Clone)]
+pub enum RollMode {
+    None,
+    Horizontal,
+    HorizontalEx,
+    Vertical,
+    VerticalEx,
+}
 pub struct Layer {
     visible: bool,
-    scroll: bool,
+    scroll: RollMode,
     scroll_step: i32,
     scroll_x1: i32,
     scroll_x2: i32,
+    scroll_w1: u32,
+    scroll_w2: u32,
     width: u32,
     height: u32,
     children: Vec<Rc<RefCell<Displayable>>>,
@@ -31,25 +41,27 @@ pub struct Layer {
 }
 
 impl Layer {
-    pub fn new(renderer: &Renderer, path: &str, w: u32, h: u32) -> Layer {
+    pub fn new(renderer: &Renderer, path: &[&str], w: u32, h: u32) -> Layer {
         Layer {
             visible: true,
-            scroll: true,
+            scroll: RollMode::None,
             scroll_step: 1,
             scroll_x1: 0,
             scroll_x2: w as i32,
+            scroll_w1: 0,
+            scroll_w2: 0,
             width: w,
             height: h,
             children: Vec::new(),
-            node: Node::new(renderer, &[path]),
+            node: Node::new(renderer, path),
         }
     }
 
-    pub fn set_scroll(&mut self, enable: bool) {
+    pub fn set_scroll(&mut self, enable: RollMode) {
         self.scroll = enable;
     }
 
-    pub fn get_scroll(&self) -> bool {
+    pub fn get_scroll(&self) -> RollMode {
         self.scroll
     }
 
@@ -71,48 +83,103 @@ impl Displayable for Layer {
     }
 
     fn update(&mut self) {
-        if self.scroll {
-            self.scroll_x1 -= self.scroll_step;
-            self.scroll_x2 -= self.scroll_step;
+        // if self.scroll {
 
-            if self.scroll_x1 < -1 * (self.width as i32 - self.scroll_step) {
-                self.scroll_x1 = self.width as i32;
-            }
-            if self.scroll_x2 < -1 * (self.width as i32 - self.scroll_step) {
-                self.scroll_x2 = self.scroll_x1 + self.width as i32;
-            }
+        // }
+        match self.scroll {
+            RollMode::None => {}
+            RollMode::Horizontal => {
+                self.scroll_x1 -= self.scroll_step;
+                self.scroll_x2 -= self.scroll_step;
 
-            for child in &self.children {
-                child.borrow_mut().update();
+                if self.scroll_x1 < -1 * (self.width as i32 - self.scroll_step) {
+                    self.scroll_x1 = self.width as i32;
+                }
+                if self.scroll_x2 < -1 * (self.width as i32 - self.scroll_step) {
+                    self.scroll_x2 = self.scroll_x1 + self.width as i32;
+                }
+
+                // for child in &self.children {
+                //     child.borrow_mut().update();
+                // }
             }
+            RollMode::HorizontalEx => {
+                let sz = self.get_texture_size(0).unwrap();
+                self.scroll_x1 += self.scroll_step as i32;
+                if self.scroll_x1 > sz.0 as i32 {
+                    self.scroll_x1 = 0;
+                }
+
+                if self.scroll_x1 > (sz.0 - self.width) as i32 {
+                    self.scroll_w1 = sz.0 - self.scroll_x1 as u32;
+                } else {
+                    self.scroll_w1 = self.width;
+                }
+
+                self.scroll_x2 += self.scroll_step;
+                if (self.scroll_x2 - self.width as i32) > sz.0 as i32 {
+                    self.scroll_x2 = self.width as i32;
+                }
+
+                self.scroll_w2 = self.width - self.scroll_w1;
+            }
+            RollMode::Vertical => {}
+            RollMode::VerticalEx => {}
         }
     }
 
     fn paint(&self, renderer: &mut Renderer) {
         if self.visible {
-            if self.scroll {
-                let mut current_texture = self.get_texture(0).unwrap();
-                renderer.copy(&mut current_texture,
-                              None,
-                              Some(Rect::new(self.scroll_x1, 0, self.width, self.height)))
-                        .expect("layer should have rendered.");
+
+            match self.scroll {
+                RollMode::None => {
+                    // self.node.paint(renderer);
+                    let mut current_texture = self.get_texture(0).unwrap();
+                    renderer.copy(&mut current_texture,
+                                  None,
+                                  Some(Rect::new(0, 0, self.width, self.height)))
+                            .expect("layer should have rendered.");
+                }
+                RollMode::Horizontal => {
+                    let mut current_texture = self.get_texture(0).unwrap();
+                    renderer.copy(&mut current_texture,
+                                  None,
+                                  Some(Rect::new(self.scroll_x1, 0, self.width, self.height)))
+                            .expect("layer should have rendered.");
 
 
-                renderer.copy(&mut current_texture,
-                              None,
-                              Some(Rect::new(self.scroll_x2, 0, self.width, self.height)))
-                        .expect("layer should have rendered.");
-            } else {
-                // self.node.paint(renderer);
-                let mut current_texture = self.get_texture(0).unwrap();
-                renderer.copy(&mut current_texture,
-                              None,
-                              Some(Rect::new(0, 0, self.width, self.height)))
-                        .expect("layer should have rendered.");
+                    renderer.copy(&mut current_texture,
+                                  None,
+                                  Some(Rect::new(self.scroll_x2, 0, self.width, self.height)))
+                            .expect("layer should have rendered.");
+                }
+                RollMode::HorizontalEx => {
+                    let mut current_texture = self.get_texture(0).unwrap();
+                    renderer.copy(&mut current_texture,
+                                  Some(Rect::new(self.scroll_x1 as i32,
+                                                 0,
+                                                 self.scroll_w1,
+                                                 self.height)),
+                                  Some(Rect::new(0, 0, self.scroll_w1, self.height)))
+                            .expect("background should have rendered.");
+
+                    if self.scroll_w2 > 0 {
+                        renderer.copy(&mut current_texture,
+                                      Some(Rect::new(0, 0, self.scroll_w2, self.height)),
+                                      Some(Rect::new((self.width - self.scroll_w2) as i32,
+                                                     0,
+                                                     self.scroll_w2,
+                                                     self.height)))
+                                .expect("background should have rendered.");
+                    }
+                }
+                RollMode::Vertical => {}
+                RollMode::VerticalEx => {}
             }
-            for child in &self.children {
-                child.borrow_mut().paint(renderer);
-            }
+            // for child in &self.children {
+            //     child.borrow_mut().paint(renderer);
+            // }
+
         }
     }
 }

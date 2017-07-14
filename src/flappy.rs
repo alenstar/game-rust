@@ -12,13 +12,15 @@ use sdl2::image::LoadTexture;
 use sdl2::event::Event;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::collections::HashMap;
 use sdl2::keyboard::Keycode;
 
 use display::Displayable;
 use sprite::Sprite;
 use scene::Scene;
-use layer::Layer;
-use atlas::Atlas;
+use layer::{Layer, RollMode};
+use node::Node;
+use atlas::{TexLoader, TexElement};
 
 pub struct Bird {
     speed: f32,
@@ -110,15 +112,16 @@ pub struct FlappyScene {
     height: u32,
 
     state: GameStatus,
-    atlas: Atlas,
+    atlas: HashMap<String, Rc<RefCell<TexElement>>>,
     bird: Bird,
     scene: Scene,
+    background: Node,
 }
 
 impl FlappyScene {
     // add code here
     pub fn new(renderer: &Renderer, w: u32, h: u32) -> FlappyScene {
-        let mut scene = Scene::new(renderer, "res/imgs/background.png");
+        let mut scene = Scene::new(renderer); // "res/imgs/background.png"
 
         {
             for i in 1..6 {
@@ -129,15 +132,26 @@ impl FlappyScene {
                                                                 w,
                                                                 h)));
                 if i < 4 {
-                    layer.borrow_mut().set_scroll(false);
+                    layer.borrow_mut().set_scroll(RollMode::None);
+                } else {
+                    layer.borrow_mut().set_scroll(RollMode::Horizontal);
                 }
-                scene.add_child(layer);
+                scene.add_child(&format!("layer_0{}_1920x1080.png", i)[..], layer);
             }
         }
         // let mut layer = scene.get_child(0).unwrap().borrow_mut() as &mut Layer;
 
         // scene.add_child(bird);
-        scene.set_interval(0.5);
+        let mut bg = Node::new(renderer, &["res/imgs/background.png"]);
+        bg.set_interval(0.5);
+
+        let atlas = TexLoader(renderer, "res/atlas.txt", "res/atlas.png");
+        {
+            for (k, v) in &atlas {
+                v.borrow_mut().hide();
+                scene.add_child(&k[..], v.clone());
+            }
+        }
 
         FlappyScene {
             scroll: false,
@@ -149,28 +163,14 @@ impl FlappyScene {
             width: w,
             height: h,
             state: GameStatus::STOPED,
-            atlas: Atlas::new(renderer, "res/atlas.png", "res/atlas.txt"),
+            atlas: atlas,
             bird: Bird::new(renderer),
             scene: scene,
+            background: bg,
         }
     }
 
     pub fn start(&mut self) {
-        // self.atlas.hide();
-
-        // self.atlas
-        //     .select_rect(&("button_play".to_string()))
-        //     .set_position(&("button_play".to_string()), 0, 0);
-
-        // self.atlas
-        //     .select_rect(&("text_ready".to_string()))
-        //     .set_position(&("text_ready".to_string()), 0, 100);
-
-        self.atlas
-            .select_rect(&("tutorial".to_string()))
-            .set_position(&("tutorial".to_string()), 0, 200);
-
-
         self.bird.set_interval(0.3);
         let sz = self.bird.get_size();
         self.bird.set_position(self.width as i32 / 2 - sz.0 as i32,
@@ -182,9 +182,6 @@ impl FlappyScene {
     pub fn stop(&mut self) {
         // TODO
         self.bird.hide();
-        self.atlas
-            .select_rect(&("text_game_over".to_string()))
-            .set_position(&("text_game_over".to_string()), 0, 0);
     }
 }
 
@@ -216,18 +213,20 @@ impl Displayable for FlappyScene {
 
         // TODO: allow cancel propagating events based on logic in parent.
         self.scene.on_key_down(event);
+        self.bird.on_key_down(event);
     }
 
     fn update(&mut self) {
 
-        if self.get_elapsed() >= self.get_interval() {
-            self.cursor_incr();
-            self.update_time();
+        if self.background.get_elapsed() >= self.background.get_interval() {
+            self.background.cursor_incr();
+            self.background.update_time();
         }
+        self.background.update();
         self.scene.update();
-
+        self.bird.update();
         if self.scroll {
-            let sz = self.get_texture_size(0).unwrap();
+            let sz = self.background.get_texture_size(0).unwrap();
             self.scroll_x1 += self.scroll_step;
             if self.scroll_x1 > sz.0 {
                 self.scroll_x1 = 0;
@@ -250,7 +249,7 @@ impl Displayable for FlappyScene {
 
     fn paint(&self, renderer: &mut Renderer) {
 
-        let mut current_texture = self.get_texture(0).unwrap();
+        let mut current_texture = self.background.get_texture(0).unwrap();
         renderer.copy(&mut current_texture,
                       Some(Rect::new(self.scroll_x1 as i32, 0, self.scroll_w1, self.height)),
                       Some(Rect::new(0, 0, self.scroll_w1, self.height)))
@@ -265,11 +264,10 @@ impl Displayable for FlappyScene {
                                          self.height)))
                     .expect("background should have rendered.");
         }
-
-        // self.layer.paint(renderer);
-
-        self.scene.paint_child(renderer);
-        self.atlas.paint(renderer);
+        self.background.paint(renderer);
+        self.scene.paint(renderer);
+        // self.atlas.paint(renderer);
+        self.bird.paint(renderer);
     }
 }
 
@@ -286,6 +284,7 @@ pub struct StartScene {
     height: u32,
     // layer: Layer,
     scene: Scene,
+    background: Node,
 }
 
 impl StartScene {
@@ -297,10 +296,11 @@ impl StartScene {
         bird.borrow_mut().set_position(w as i32 / 2 - sz.0 as i32, h as i32 / 2 - sz.1 as i32);
         bird.borrow_mut().start();
 
-        let mut scene = Scene::new(renderer, "res/imgs/background.png");
+        let mut scene = Scene::new(renderer);
 
-        scene.add_child(bird);
-        scene.set_interval(0.5);
+        scene.add_child("flappy-bird", bird);
+        let mut bg = Node::new(renderer, &["res/imgs/background.png"]);
+        bg.set_interval(0.5);
 
         StartScene {
             scroll: false,
@@ -312,6 +312,7 @@ impl StartScene {
             width: w,
             height: h,
             scene: scene,
+            background: bg,
         }
     }
 
@@ -356,14 +357,14 @@ impl Displayable for StartScene {
 
     fn update(&mut self) {
 
-        if self.get_elapsed() >= self.get_interval() {
-            self.cursor_incr();
-            self.update_time();
+        if self.background.get_elapsed() >= self.background.get_interval() {
+            self.background.cursor_incr();
+            self.background.update_time();
         }
         self.scene.update();
 
         if self.scroll {
-            let sz = self.get_texture_size(0).unwrap();
+            let sz = self.background.get_texture_size(0).unwrap();
             self.scroll_x1 += self.scroll_step;
             if self.scroll_x1 > sz.0 {
                 self.scroll_x1 = 0;
@@ -386,7 +387,7 @@ impl Displayable for StartScene {
 
     fn paint(&self, renderer: &mut Renderer) {
 
-        let mut current_texture = self.get_texture(0).unwrap();
+        let mut current_texture = self.background.get_texture(0).unwrap();
         renderer.copy(&mut current_texture,
                       Some(Rect::new(self.scroll_x1 as i32, 0, self.scroll_w1, self.height)),
                       Some(Rect::new(0, 0, self.scroll_w1, self.height)))
@@ -404,7 +405,7 @@ impl Displayable for StartScene {
 
         // self.layer.paint(renderer);
 
-        self.scene.paint_child(renderer);
+        self.scene.paint(renderer);
     }
 }
 
