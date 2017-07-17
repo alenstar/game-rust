@@ -16,20 +16,20 @@ use sdl2::keyboard::Keycode;
 
 use node::Node;
 use display::Displayable;
+use atlas::TexElement;
 use animation::Animation;
 
 pub struct Sprite {
-    // x: i32,
-    // y: i32,
+    x: i32,
+    y: i32,
     // w: u32,
     // h: u32,
-    // visible: bool,
-    // texture: Rc<Texture>,
+    visible: bool,
     // /
     // cursor: u32,
     // nodes: Vec<Rc<Node>>,
     running: bool,
-    node: Node,
+    tex: TexElement,
 }
 
 impl Sprite {
@@ -85,47 +85,40 @@ impl Sprite {
     //
 }
 
-// impl Displayable for Sprite {
-// fn on_key_down(&mut self, event: &Event) {
-// match event {
-// &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
-// self.reset();
-// }
-// _ => {}
-// }
-// }
-//
-// fn update(&mut self) {
-// TODO
-// self.cursor += 1;
-// }
-//
-// fn paint(&self, renderer: &mut Renderer) {
-// let rect = Rect::new(self.x, self.y, self.w, self.h);
-// renderer
-// .copy_ex(&self.texture,
-// None, Some(rect), 0.0, None, false, false)
-// .expect("Single star particle should have rendered.");
-// }
-// }
-//
+impl Displayable for Sprite {
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
+                // self.reset();
+                // TODO
+            }
+            _ => {}
+        }
+    }
+
+    fn update(&mut self) {
+        // TODO
+        self.cursor += 1;
+    }
+
+    fn paint(&self, renderer: &mut Renderer) {
+        let rect = Rect::new(self.x, self.y, self.w, self.h);
+        renderer.copy_ex(&self.texture, None, Some(rect), 0.0, None, false, false)
+                .expect("Single star particle should have rendered.");
+    }
+}
+
 
 impl Deref for Sprite {
     type Target = Node;
 
-    fn deref<'a>(&'a self) -> &'a Node {
-        &self.node
+    fn deref<'a>(&'a self) -> &'a TexElement {
+        &self.tex
     }
 }
 
 impl DerefMut for Sprite {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut Node {
-        &mut self.node
+    fn deref_mut<'a>(&'a mut self) -> &'a mut TexElement {
+        &mut self.tex
     }
-}
-
-
-#[derive(Debug)]
-pub struct SpriteAnimation {
-    animation: Animation,
 }

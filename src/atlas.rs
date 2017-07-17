@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use sdl2::rect::Rect;
+use sdl2::rect::{Rect, Point};
 use sdl2::render::{Renderer, Texture};
 use sdl2::image::LoadTexture;
 use sdl2::event::Event;
@@ -19,11 +19,14 @@ use node::Node;
 
 // #[derive(Debug)]
 pub struct TexElement {
-    x: i32,
-    y: i32,
-    w: u32,
-    h: u32,
-    visible: bool,
+    // x: i32,
+    // y: i32,
+    // w: u32,
+    // h: u32,
+    flip_h: bool,
+    flip_v: bool,
+    angle: f32,
+    center: Point,
     rect: Rect,
     texture: Rc<Texture>,
 }
@@ -31,12 +34,11 @@ pub struct TexElement {
 impl fmt::Display for TexElement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "({}, {}, {}, {}) {} {:?}",
-               self.x,
-               self.y,
-               self.w,
-               self.h,
-               self.visible,
+               "TexElement {} {} {} {:?} {:?}",
+               self.flip_h,
+               self.flip_v,
+               self.angle,
+               self.center,
                self.rect)
     }
 }
@@ -48,11 +50,14 @@ impl TexElement {
 
     pub fn new_from_texture(texture: Rc<Texture>, rect: Rect) -> TexElement {
         TexElement {
-            x: 0,
-            y: 0,
-            w: rect.w as u32,
-            h: rect.h as u32,
-            visible: true,
+            // x: 0,
+            // y: 0,
+            // w: rect.w as u32,
+            // h: rect.h as u32,
+            flip_v: false,
+            flip_h: false,
+            angle: 0.0,
+            center: rect.center(),
             rect: rect,
             texture: texture,
         }
@@ -62,76 +67,116 @@ impl TexElement {
         let mut texture = renderer.load_texture(Path::new(path))
                                   .unwrap();
         let tquery = texture.query();
-
+        let rect = Rect::new(0, 0, tquery.width, tquery.height);
         TexElement {
-            x: 0,
-            y: 0,
-            w: tquery.width,
-            h: tquery.height,
-            // interval: 0.0,
-            // lasttime: SystemTime::now(),
-            // cursor: 0,
-            visible: true,
-            rect: Rect::new(0, 0, tquery.width, tquery.height),
+            // x: 0,
+            // y: 0,
+            // w: tquery.width,
+            // h: tquery.height,
+            flip_v: false,
+            flip_h: false,
+            angle: 0.0,
+            center: rect.center(),
+            rect: rect,
             texture: Rc::new(texture),
         }
     }
-
-    pub fn set_position<'a>(&'a mut self, x: i32, y: i32) -> &'a mut TexElement {
-        {
-            self.x = x;
-            self.y = y;
-        }
-        self
-    }
-
-    pub fn get_position(&self) -> (i32, i32) {
-        (self.x, self.y)
-    }
-
-    pub fn set_size<'a>(&'a mut self, w: u32, h: u32) -> &'a mut TexElement {
-        {
-            self.w = w;
-            self.h = h;
-        }
-        self
-    }
-
+    // pub fn set_position<'a>(&'a mut self, x: i32, y: i32) -> &'a mut TexElement {
+    // {
+    // self.x = x;
+    // self.y = y;
+    // }
+    // self
+    // }
+    //
+    // pub fn get_position(&self) -> (i32, i32) {
+    // (self.x, self.y)
+    // }
+    //
+    // pub fn set_size<'a>(&'a mut self, w: u32, h: u32) -> &'a mut TexElement {
+    // {
+    // self.w = w;
+    // self.h = h;
+    // }
+    // self
+    // }
+    //
     pub fn get_size(&self) -> (u32, u32) {
         (self.rect.w as u32, self.rect.h as u32)
     }
-    pub fn hide<'a>(&'a mut self) -> &'a mut TexElement {
-        self.visible = false;
+
+    // pub fn hide<'a>(&'a mut self) -> &'a mut TexElement {
+    //     self.visible = false;
+    //     self
+    // }
+
+    // pub fn show<'a>(&'a mut self) -> &'a mut TexElement {
+    //     self.visible = true;
+    //     self
+    // }
+
+    pub fn set_angle<'a>(&'a mut self, angle: f32) -> &'a mut TexElement {
+        self.angle = angle;
         self
     }
 
-    pub fn show<'a>(&'a mut self) -> &'a mut TexElement {
-        self.visible = true;
+    pub fn get_angle(&self, angle: f32) -> f32 {
+        self.angle
+    }
+
+    pub fn set_flip<'a>(&'a mut self, horizontal: bool, vertical: bool) -> &'a mut TexElement {
+        self.flip_h = horizontal;
+        self.flip_v = vertical;
         self
     }
-}
 
-impl Displayable for TexElement {
-    fn on_key_down(&mut self, event: &Event) {
-        // TODO: allow cancel propagating events based on logic in parent.
+    pub fn get_flip(&self) -> (bool, bool) {
+        (self.flip_h, self.flip_v)
     }
 
-    fn update(&mut self) {
-        // TODO:
+    pub fn set_center<'a>(&'a mut self, x: i32, y: i32) -> &'a mut TexElement {
+        self.center = Point::new(x, y);
+        self
     }
 
-    fn paint(&self, renderer: &mut Renderer) {
+    pub fn get_center(&self) -> (i32, i32) {
+        (self.center.x(), self.center.y())
+    }
+
+    fn paint(&self, renderer: &mut Renderer, Rect: rect) {
         if self.visible {
             // let pos = self.get_position(&self.name);
             // let rect = self.get_rect(&self.name);
             renderer.copy(&self.texture,
                           Some(self.rect),
-                          Some(Rect::new(self.x, self.y, self.w, self.h)))
+                          Some(rect))
+                          // Some(Rect::new(self.x, self.y, self.w, self.h)))
                     .expect("layer should have rendered.");
         }
     }
 }
 
+// impl Displayable for TexElement {
+// fn on_key_down(&mut self, event: &Event) {
+// TODO: allow cancel propagating events based on logic in parent.
+// }
+//
+// fn update(&mut self) {
+// TODO:
+// }
+//
+// fn paint(&self, renderer: &mut Renderer) {
+// if self.visible {
+// let pos = self.get_position(&self.name);
+// let rect = self.get_rect(&self.name);
+// renderer.copy(&self.texture,
+// Some(self.rect),
+// Some(Rect::new(self.x, self.y, self.w, self.h)))
+// .expect("layer should have rendered.");
+// }
+// }
+// }
+//
 
 pub fn TexLoader(renderer: &Renderer,
                  atlpath: &str,
