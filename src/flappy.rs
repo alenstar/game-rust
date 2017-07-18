@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use sdl2::keyboard::Keycode;
 
 use display::Displayable;
+use animation::Animation;
 use sprite::Sprite;
 use scene::Scene;
 use layer::{Layer, RollMode};
@@ -26,7 +27,7 @@ pub struct Bird {
     speed: f32,
     xaccelerate: f32,
     yaccelerate: f32,
-    sprite: Sprite,
+    animation: Animation,
     died: bool,
 }
 
@@ -37,11 +38,11 @@ impl Bird {
             speed: 0.0,
             xaccelerate: 0.0,
             yaccelerate: 0.2,
-            sprite: Sprite::new(renderer,
-                                &["res/imgs/bird_frame_1.png",
-                                  "res/imgs/bird_frame_2.png",
-                                  "res/imgs/bird_frame_3.png",
-                                  "res/imgs/bird_frame_4.png"]),
+            animation: Animation::new(renderer,
+                                      &["res/imgs/bird_frame_1.png",
+                                        "res/imgs/bird_frame_2.png",
+                                        "res/imgs/bird_frame_3.png",
+                                        "res/imgs/bird_frame_4.png"]),
             died: false,
         }
     }
@@ -68,28 +69,28 @@ impl Displayable for Bird {
         }
     }
     fn update(&mut self) {
-        let pos = self.sprite.get_position();
-        self.sprite.set_position(pos.0, pos.1 + self.speed as i32);
+        let pos = self.animation.get_position();
+        self.animation.set_position(pos.0, pos.1 + self.speed as i32);
         self.speed += self.yaccelerate;
-        self.sprite.update();
+        self.animation.update();
     }
 
     fn paint(&self, renderer: &mut Renderer) {
-        self.sprite.paint(renderer);
+        self.animation.paint(renderer);
     }
 }
 
 impl Deref for Bird {
-    type Target = Sprite;
+    type Target = Animation;
 
-    fn deref<'a>(&'a self) -> &'a Sprite {
-        &self.sprite
+    fn deref<'a>(&'a self) -> &'a Animation {
+        &self.animation
     }
 }
 
 impl DerefMut for Bird {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut Sprite {
-        &mut self.sprite
+    fn deref_mut<'a>(&'a mut self) -> &'a mut Animation {
+        &mut self.animation
     }
 }
 
@@ -115,7 +116,7 @@ pub struct FlappyScene {
     atlas: HashMap<String, Rc<RefCell<TexElement>>>,
     bird: Bird,
     scene: Scene,
-    background: Node,
+    background: Sprite,
 }
 
 impl FlappyScene {
@@ -125,12 +126,9 @@ impl FlappyScene {
 
         {
             for i in 1..6 {
-                let mut layer = Rc::new(RefCell::new(Layer::new(renderer,
-                                                                &format!("res/imgs/layer_0{}_1920x1080.png",
-                                                                        i)
-                                                                    [..],
-                                                                w,
-                                                                h)));
+                let mut layer = Rc::new(RefCell::new(Layer::new(renderer,w,h,
+                                                                &format!("res/imgs/layer_0{}_1920x1080.png",i)[..]
+                                                                )));
                 if i < 4 {
                     layer.borrow_mut().set_scroll(RollMode::None);
                 } else {
@@ -142,7 +140,7 @@ impl FlappyScene {
         // let mut layer = scene.get_child(0).unwrap().borrow_mut() as &mut Layer;
 
         // scene.add_child(bird);
-        let mut bg = Node::new(renderer, &["res/imgs/background.png"]);
+        let mut bg = Sprite::new(renderer, "res/imgs/background.png");
         bg.set_interval(0.5);
 
         let atlas = TexLoader(renderer, "res/atlas.txt", "res/atlas.png");
@@ -201,8 +199,6 @@ impl DerefMut for FlappyScene {
 }
 
 impl Displayable for FlappyScene {
-    // add code here
-
     fn on_key_down(&mut self, event: &Event) {
         match event {
             &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
@@ -215,18 +211,18 @@ impl Displayable for FlappyScene {
         self.scene.on_key_down(event);
         self.bird.on_key_down(event);
     }
-
     fn update(&mut self) {
 
-        if self.background.get_elapsed() >= self.background.get_interval() {
-            self.background.cursor_incr();
-            self.background.update_time();
-        }
+        // if self.background.get_elapsed() >= self.background.get_interval() {
+        //     self.background.cursor_incr();
+        //     self.background.update_time();
+        // }
+
         self.background.update();
         self.scene.update();
         self.bird.update();
         if self.scroll {
-            let sz = self.background.get_texture_size(0).unwrap();
+            let sz = self.background.get_size();
             self.scroll_x1 += self.scroll_step;
             if self.scroll_x1 > sz.0 {
                 self.scroll_x1 = 0;
@@ -249,7 +245,7 @@ impl Displayable for FlappyScene {
 
     fn paint(&self, renderer: &mut Renderer) {
 
-        let mut current_texture = self.background.get_texture(0).unwrap();
+        let mut current_texture = self.background.get_texture();
         renderer.copy(&mut current_texture,
                       Some(Rect::new(self.scroll_x1 as i32, 0, self.scroll_w1, self.height)),
                       Some(Rect::new(0, 0, self.scroll_w1, self.height)))
@@ -426,7 +422,7 @@ impl Pipes {
             xaccelerate: 0.0,
             yaccelerate: 0.2,
             pipes: vec![Pipe::new()],
-            sprite: Sprite::new(renderer, &["res/imgs/pipe.png"]),
+            sprite: Sprite::new(renderer, "res/imgs/pipe.png"),
         }
     }
 

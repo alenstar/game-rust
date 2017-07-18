@@ -14,7 +14,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
 use display::Displayable;
-use node::Node;
+use sprite::Sprite;
 
 pub struct Scene {
     // Internal state.
@@ -92,24 +92,6 @@ impl Scene {
 }
 
 impl Displayable for Scene {
-    fn on_key_down(&mut self, event: &Event) {
-        match event {
-            &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
-                self.paused = !self.paused;
-            }
-            _ => {}
-        }
-
-        if self.paused {
-            return;
-        }
-
-        // TODO: allow cancel propagating events based on logic in parent.
-        for (_, child) in &self.children {
-            child.borrow_mut().on_key_down(event);
-        }
-    }
-
     fn update(&mut self) {
         if self.paused {
             return;
@@ -128,6 +110,23 @@ impl Displayable for Scene {
 
         for (_, child) in &self.children {
             child.borrow_mut().paint(renderer);
+        }
+    }
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
+                self.paused = !self.paused;
+            }
+            _ => {}
+        }
+
+        if self.paused {
+            return;
+        }
+
+        // TODO: allow cancel propagating events based on logic in parent.
+        for (_, child) in &self.children {
+            child.borrow_mut().on_key_down(event);
         }
     }
 }
@@ -157,16 +156,6 @@ impl SceneManager {
 }
 
 impl Displayable for SceneManager {
-    fn on_key_down(&mut self, event: &Event) {
-        match event {
-            &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
-                // TODO
-            }
-            _ => {}
-        }
-        self.on_key_down(event);
-    }
-
     fn update(&mut self) {
         self.scene.update();
 
@@ -175,5 +164,14 @@ impl Displayable for SceneManager {
     }
     fn paint(&self, renderer: &mut Renderer) {
         self.scene.paint(renderer);
+    }
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::P), .. } => {
+                // TODO
+            }
+            _ => {}
+        }
+        self.on_key_down(event);
     }
 }
