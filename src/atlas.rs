@@ -17,6 +17,32 @@ use std::path::Path;
 use display::Displayable;
 use node::Node;
 
+pub trait Element {
+    fn hide(&mut self);
+
+    fn show(&mut self);
+
+    fn get_size(&self) -> (u32, u32);
+
+    fn width(&self) -> u32 {
+        self.get_size().0
+    }
+
+    fn height(&self) -> u32 {
+        self.get_size().1
+    }
+
+    fn set_visible(&mut self, enable: bool) {
+        if enable {
+            self.show()
+        } else {
+            self.hide()
+        }
+    }
+
+    fn get_visible(&self) -> bool;
+}
+
 // #[derive(Debug)]
 pub struct TexElement {
     flip_h: bool,

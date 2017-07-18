@@ -29,7 +29,7 @@ pub struct Scene {
     // pipes: Rc<RefCell<Pipes>>,
     //
     // Generic.
-    // children: Vec<Rc<RefCell<Displayable>>>,
+    children_index: Vec<String>,
     children: HashMap<String, Rc<RefCell<Displayable>>>, // background: Node,
 }
 
@@ -48,13 +48,13 @@ impl Scene {
             // pipes: pipes.clone(),
             paused: false,
             game_over: false,
-            // children: Vec::new(),
+            children_index: Vec::new(),
             children: HashMap::new(), // background: Node::new(renderer, &[path]),
         }
     }
 
     pub fn add_child(&mut self, name: &str, child: Rc<RefCell<Displayable>>) {
-        // self.children.push(child);
+        self.children_index.push(name.to_string());
         self.children.insert(name.to_string(), child);
     }
 
@@ -98,18 +98,20 @@ impl Displayable for Scene {
         }
         // self.background.update();
         // TODO: allow cancel propagating events based on logic in parent.
+
+
         for (_, child) in &self.children {
             child.borrow_mut().update();
         }
-
-        // Nothing to do for the background at this point sucka.
-        // TODO
     }
     fn paint(&self, renderer: &mut Renderer) {
         // self.background.paint(renderer);
 
-        for (_, child) in &self.children {
-            child.borrow_mut().paint(renderer);
+        for idx in &self.children_index {
+            match self.children.get(&idx.to_string()) {
+                Some(child) => child.borrow_mut().paint(renderer),
+                None => {}
+            }
         }
     }
     fn on_key_down(&mut self, event: &Event) {

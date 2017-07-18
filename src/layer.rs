@@ -166,9 +166,9 @@ impl Displayable for Layer {
                 RollMode::Vertical => {}
                 RollMode::VerticalEx => {}
             }
-            // for child in &self.children {
-            //     child.borrow_mut().paint(renderer);
-            // }
+            for child in &self.children {
+                child.borrow_mut().paint(renderer);
+            }
 
         }
     }

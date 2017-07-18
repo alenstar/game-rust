@@ -5,6 +5,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::render::{Texture, Renderer, BlendMode};
 
+use std::convert::AsRef;
 use std::borrow::Borrow;
 use std::ops::{Deref, DerefMut};
 use std::time::{Duration, SystemTime};
@@ -58,6 +59,18 @@ impl Animation {
             cursor: 0,
             texs: texs,
         }
+    }
+    pub fn get_size(&self) -> (u32, u32) {
+        self.texs[0].as_ref().get_size()
+
+    }
+
+    pub fn width(&self) -> u32 {
+        self.texs[0].as_ref().width() as u32
+    }
+
+    pub fn height(&self) -> u32 {
+        self.texs[0].as_ref().height() as u32
     }
 
     pub fn set_position(&mut self, x: i32, y: i32) {
@@ -149,16 +162,18 @@ impl Displayable for Animation {
         }
     }
 }
-impl Deref for Animation {
-    type Target = TexElement;
+// impl Deref for Animation {
+//     type Target = TexElement;
 
-    fn deref<'a>(&'a self) -> &'a TexElement {
-        &self.texs[0].borrow()
-    }
-}
+//     fn deref<'a>(&'a self) -> &'a TexElement {
+//         self.texs[0].as_ref().borrow().deref() //.deref() // .borrow()
+//     }
+// }
 
-impl DerefMut for Animation {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut TexElement {
-        Rc::get_mut(&mut self.texs[0]).unwrap()
-    }
-}
+// impl DerefMut for Animation {
+//     fn deref_mut<'a>(&'a mut self) -> &'a mut TexElement {
+//         // Rc::get_mut(
+//         self.texs[0].as_ref().get_mut()
+//         // ).unwrap()
+//     }
+// }
