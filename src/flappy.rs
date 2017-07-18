@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use rand::{thread_rng, Rng};
 
-use sdl2::rect::Rect;
+use sdl2::rect::{Point, Rect};
 use sdl2::render::Renderer;
 use sdl2::render::Texture;
 use sdl2::image::LoadTexture;
@@ -171,8 +171,10 @@ impl FlappyScene {
     pub fn start(&mut self) {
         self.bird.set_interval(0.3);
         let sz = self.bird.get_size();
-        self.bird.set_position(self.width as i32 / 2 - sz.0 as i32,
-                               self.height as i32 / 2 - sz.1 as i32);
+        let p = Rect::new(0, 0, self.width, self.height).center();
+        self.bird.set_position(p.x(), p.y());
+        // self.bird.set_position(self.width as i32 / 2 - sz.0 as i32,
+        //                        self.height as i32 / 2 - sz.1 as i32);
         self.bird.start();
         self.bird.show();
     }
@@ -406,82 +408,21 @@ impl Displayable for StartScene {
 }
 
 
-pub struct Pipes {
+// #[derive(Clone, Copy)]
+pub struct Pipe {
+    x: i32,
+    h: i32,
+    w: i32,
     speed: f32,
     xaccelerate: f32,
     yaccelerate: f32,
-    pipes: Vec<Pipe>,
+    inverted: bool,
     sprite: Sprite,
-}
-
-impl Pipes {
-    // add code here
-    pub fn new(renderer: &Renderer) -> Pipes {
-        Pipes {
-            speed: 0.0,
-            xaccelerate: 0.0,
-            yaccelerate: 0.2,
-            pipes: vec![Pipe::new()],
-            sprite: Sprite::new(renderer, "res/imgs/pipe.png"),
-        }
-    }
-
-    pub fn jump(&mut self) {
-        self.speed = -8.0;
-    }
-}
-
-impl Displayable for Pipes {
-    // add code here
-
-    fn on_key_down(&mut self, event: &Event) {
-        match event {
-            &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
-                self.jump();
-                // self.particles.reset(self.x, self.y);
-            }
-            _ => {}
-        }
-    }
-    fn update(&mut self) {
-        let pos = self.sprite.get_position();
-        self.sprite.set_position(pos.0, pos.1 + self.speed as i32);
-        self.speed += self.yaccelerate;
-        self.sprite.update();
-    }
-
-    fn paint(&self, renderer: &mut Renderer) {
-        self.sprite.paint(renderer);
-    }
-}
-
-impl Deref for Pipes {
-    type Target = Sprite;
-
-    fn deref<'a>(&'a self) -> &'a Sprite {
-        &self.sprite
-    }
-}
-
-impl DerefMut for Pipes {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut Sprite {
-        &mut self.sprite
-    }
-}
-
-
-
-#[derive(Clone, Copy)]
-pub struct Pipe {
-    pub x: i32,
-    pub h: i32,
-    pub w: i32,
-    pub inverted: bool,
 }
 
 
 impl Pipe {
-    pub fn new() -> Pipe {
+    pub fn new(tex: TexElement) -> Pipe {
         let mut inverted = false;
 
         // Add some variation.
@@ -493,11 +434,17 @@ impl Pipe {
             x: 800,
             h: 100 + thread_rng().gen_range(0, 300) as i32,
             w: 50,
+            speed: 0.0,
+            xaccelerate: 0.2,
+            yaccelerate: 0.0,
             inverted: inverted,
+            sprite: Sprite::new_from_tex(tex),
         }
     }
-
-    pub fn paint(&self, renderer: &mut Renderer, texture: &Texture) {
+}
+impl Displayable for Pipe {
+    fn paint(&self, renderer: &mut Renderer) {
+        // , texture: &Texture) {
         let mut rect = Rect::new(self.x, 600 - self.h, self.w as u32, self.h as u32);
 
         let mut flip = false;
@@ -505,10 +452,15 @@ impl Pipe {
             rect.y = 0;
             flip = true;
         }
-
+        let texture = self.sprite.get_texture();
         renderer.copy_ex(texture, None, Some(rect), 0.0, None, false, flip)
                 .expect("Single pipe should have rendered.");
     }
 
-    // TODO // collision detection
+    fn update(&mut self) {
+        let pos = self.sprite.get_position();
+        self.sprite.set_position(pos.0, pos.1 + self.speed as i32);
+        self.speed += self.xaccelerate;
+        // self.sprite.update();
+    }
 }

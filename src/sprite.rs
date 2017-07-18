@@ -29,6 +29,17 @@ pub struct Sprite {
 }
 
 impl Sprite {
+    pub fn new_from_tex(tex: TexElement) -> Sprite {
+        Sprite {
+            x: 0,
+            y: 0,
+            interval: 0.0,
+            lasttime: SystemTime::now(),
+            // visible: true,
+            running: false,
+            tex: tex,
+        }
+    }
     pub fn new(renderer: &Renderer, path: &str) -> Sprite {
         Sprite {
             x: 0,
