@@ -48,6 +48,8 @@ pub struct TexElement {
     flip_h: bool,
     flip_v: bool,
     angle: f64,
+    visible_w: u32,
+    visible_h: u32,
     visible: bool,
     center: Point,
     rect: Rect,
@@ -77,6 +79,8 @@ impl TexElement {
             flip_v: false,
             flip_h: false,
             angle: 0.0,
+            visible_w: rect.w as u32,
+            visible_h: rect.h as u32,
             visible: true,
             center: rect.center(),
             rect: rect,
@@ -94,6 +98,8 @@ impl TexElement {
             flip_v: false,
             flip_h: false,
             angle: 0.0,
+            visible_w: rect.w as u32,
+            visible_h: rect.h as u32,
             visible: true,
             center: rect.center(),
             rect: rect,
@@ -129,6 +135,15 @@ impl TexElement {
 
     pub fn get_visible(&self) -> bool {
         self.visible
+    }
+
+    pub fn get_visible_size(&self) -> (u32, u32) {
+        (self.visible_w, self.visible_h)
+    }
+
+    pub fn set_visible_size(&mut self, w: u32, h: u32) {
+        self.visible_w = w;
+        self.visible_h = h;
     }
 
     pub fn set_angle<'a>(&'a mut self, angle: f64) -> &'a mut TexElement {
@@ -228,6 +243,8 @@ pub fn TexLoader(renderer: &Renderer,
             flip_v: false,
             flip_h: false,
             angle: 0.0,
+            visible_w: rect.w as u32,
+            visible_h: rect.h as u32,
             visible: true,
             center: rect.center(),
             rect: rect,
