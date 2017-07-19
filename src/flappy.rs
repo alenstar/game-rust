@@ -117,6 +117,7 @@ pub struct FlappyScene {
     bird: Bird,
     scene: Scene,
     background: Sprite,
+    pipes: Vec<Rc<Pipe>>,
 }
 
 impl FlappyScene {
@@ -137,7 +138,9 @@ impl FlappyScene {
                 scene.add_child(&format!("layer_0{}_1920x1080.png", i)[..], layer);
             }
         }
-        // let mut layer = scene.get_child(0).unwrap().borrow_mut() as &mut Layer;
+        let mut pipe = Rc::new(RefCell::new(Layer::new(renderer, w, h, "res/imgs/pipe.png")));
+        pipe.borrow_mut().set_scroll(RollMode::Horizontal);
+        // scene.add_child("pipe.png", pipe);
 
         // scene.add_child(bird);
         let mut bg = Sprite::new(renderer, "res/imgs/background.png");
@@ -149,6 +152,13 @@ impl FlappyScene {
                 v.borrow_mut().hide();
                 scene.add_child(&k[..], v.clone());
             }
+        }
+
+        let mut pipes = Vec::new();
+        for i in 1..4 {
+            let mut p = Pipe::new(renderer, "res/imgs/pipe.png");
+            p.set_position(0, 0);
+            pipes.push(Rc::new(p));
         }
 
         FlappyScene {
@@ -165,6 +175,7 @@ impl FlappyScene {
             bird: Bird::new(renderer),
             scene: scene,
             background: bg,
+            pipes: pipes,
         }
     }
 
@@ -177,6 +188,8 @@ impl FlappyScene {
         //                        self.height as i32 / 2 - sz.1 as i32);
         self.bird.start();
         self.bird.show();
+
+
     }
 
     pub fn stop(&mut self) {
@@ -265,6 +278,9 @@ impl Displayable for FlappyScene {
         self.background.paint(renderer);
         self.scene.paint(renderer);
         // self.atlas.paint(renderer);
+        for p in &self.pipes {
+            p.paint(renderer);
+        }
         self.bird.paint(renderer);
     }
 }
@@ -411,8 +427,9 @@ impl Displayable for StartScene {
 // #[derive(Clone, Copy)]
 pub struct Pipe {
     x: i32,
-    h: i32,
-    w: i32,
+    w: u32,
+    h: u32,
+
     speed: f32,
     xaccelerate: f32,
     yaccelerate: f32,
@@ -422,18 +439,39 @@ pub struct Pipe {
 
 
 impl Pipe {
-    pub fn new(tex: TexElement) -> Pipe {
+    pub fn new(renderer: &Renderer, path: &str) -> Pipe {
+        let sp = Sprite::new(renderer, path);
+        let sz = sp.get_size();
         let mut inverted = false;
+        // Add some variation.
+        if thread_rng().gen_range(0, 10) > 5 {
+            inverted = true;
+        }
+        Pipe {
+            x: 0,
+            w: sz.0,
+            h: thread_rng().gen_range(sz.1 / 10, sz.1),
 
+            speed: 0.0,
+            xaccelerate: 0.2,
+            yaccelerate: 0.0,
+            inverted: inverted,
+            sprite: sp,
+        }
+    }
+    pub fn new_from_tex(tex: TexElement) -> Pipe {
+        let mut inverted = false;
+        let sz = tex.get_size();
         // Add some variation.
         if thread_rng().gen_range(0, 10) > 5 {
             inverted = true;
         }
 
         Pipe {
-            x: 800,
-            h: 100 + thread_rng().gen_range(0, 300) as i32,
-            w: 50,
+            x: 0,
+            w: sz.0,
+            h: thread_rng().gen_range(sz.1 / 10, sz.1),
+
             speed: 0.0,
             xaccelerate: 0.2,
             yaccelerate: 0.0,
@@ -445,7 +483,7 @@ impl Pipe {
 impl Displayable for Pipe {
     fn paint(&self, renderer: &mut Renderer) {
         // , texture: &Texture) {
-        let mut rect = Rect::new(self.x, 600 - self.h, self.w as u32, self.h as u32);
+        let mut rect = Rect::new(self.x, 600 - self.h as i32, self.w, self.h);
 
         let mut flip = false;
         if self.inverted {
@@ -462,5 +500,20 @@ impl Displayable for Pipe {
         self.sprite.set_position(pos.0, pos.1 + self.speed as i32);
         self.speed += self.xaccelerate;
         // self.sprite.update();
+    }
+}
+
+
+impl Deref for Pipe {
+    type Target = Sprite;
+
+    fn deref<'a>(&'a self) -> &'a Sprite {
+        &self.sprite
+    }
+}
+
+impl DerefMut for Pipe {
+    fn deref_mut<'a>(&'a mut self) -> &'a mut Sprite {
+        &mut self.sprite
     }
 }

@@ -143,3 +143,56 @@ impl DerefMut for Sprite {
         &mut self.tex
     }
 }
+
+// 自动移动屏幕
+pub struct AutoPan {
+    max_w: u32,
+    max_h: u32,
+    sprite: Sprite,
+}
+
+impl AutoPan {
+    pub fn new(sp: Sprite, w: u32, h: u32) -> AutoPan {
+        AutoPan {
+            max_w: w,
+            max_h: h,
+            sprite: sp,
+        }
+    }
+}
+
+impl Displayable for AutoPan {
+    fn update(&mut self) {}
+
+    fn paint(&self, renderer: &mut Renderer) {
+        if self.get_visible() {
+            let rect = Rect::new(self.x, self.y, self.width(), self.height());
+            self.paint_ex(renderer, rect);
+            // renderer.copy_ex(&self.texture, None, Some(rect), 0.0, None, false, false)
+            //         .expect("Single star particle should have rendered.");
+        }
+    }
+    fn on_key_down(&mut self, event: &Event) {
+        match event {
+            &Event::KeyDown { keycode: Some(Keycode::Space), .. } => {
+                // self.reset();
+                // TODO
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Deref for AutoPan {
+    type Target = Sprite;
+
+    fn deref<'a>(&'a self) -> &'a Sprite {
+        &self.sprite
+    }
+}
+
+impl DerefMut for AutoPan {
+    fn deref_mut<'a>(&'a mut self) -> &'a mut Sprite {
+        &mut self.sprite
+    }
+}

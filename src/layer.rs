@@ -23,8 +23,10 @@ pub enum RollMode {
     None,
     Horizontal,
     HorizontalEx,
+    HorizontalFixed,
     Vertical,
     VerticalEx,
+    VerticalFixed,
 }
 pub struct Layer {
     // visible: bool,
@@ -56,8 +58,16 @@ impl Layer {
         }
     }
 
-    pub fn set_scroll(&mut self, enable: RollMode) {
-        self.scroll = enable;
+    pub fn set_scroll(&mut self, mode: RollMode) {
+        self.scroll = mode;
+        // match mode {
+        //     RollMode::HorizontalFixed => {
+        //         let sz = self.node.get_size();
+        //         self.w = sz.0;
+        //         self.h = sz.1;
+        //     }
+        //     _ => {}
+        // }
     }
 
     pub fn get_scroll(&self) -> RollMode {
@@ -113,8 +123,10 @@ impl Displayable for Layer {
 
                 self.scroll_w2 = self.w - self.scroll_w1;
             }
+            RollMode::HorizontalFixed => {}
             RollMode::Vertical => {}
             RollMode::VerticalEx => {}
+            RollMode::VerticalFixed => {}
         }
     }
 
@@ -163,8 +175,27 @@ impl Displayable for Layer {
                                 .expect("background should have rendered.");
                     }
                 }
+                RollMode::HorizontalFixed => {
+                    let mut current_texture = self.get_texture();
+                    let sz = self.node.get_size();
+                    renderer.copy(&mut current_texture,
+                                  Some(Rect::new(self.scroll_x1 as i32, 0, self.scroll_w1, sz.1)),
+                                  Some(Rect::new(0, 0, self.scroll_w1, self.h)))
+                            .expect("background should have rendered.");
+
+                    if self.scroll_w2 > 0 {
+                        renderer.copy(&mut current_texture,
+                                      Some(Rect::new(0, 0, self.scroll_w2, sz.1)),
+                                      Some(Rect::new((self.w - self.scroll_w2) as i32,
+                                                     0,
+                                                     self.scroll_w2,
+                                                     self.h)))
+                                .expect("background should have rendered.");
+                    }
+                }
                 RollMode::Vertical => {}
                 RollMode::VerticalEx => {}
+                RollMode::VerticalFixed => {}
             }
             for child in &self.children {
                 child.borrow_mut().paint(renderer);
