@@ -166,10 +166,12 @@ impl Displayable for AutoPan {
 
     fn paint(&self, renderer: &mut Renderer) {
         if self.get_visible() {
-            let rect = Rect::new(self.x, self.y, self.width(), self.height());
-            self.paint_ex(renderer, rect);
-            // renderer.copy_ex(&self.texture, None, Some(rect), 0.0, None, false, false)
-            //         .expect("Single star particle should have rendered.");
+            let sz = self.sprite.get_visible_size();
+            let rect = Rect::new(self.x, self.y, sz.0, sz.1);
+            // self.paint_ex(renderer, rect);
+            let texture = self.sprite.get_texture();
+            renderer.copy_ex(texture, None, Some(rect), 0.0, None, false, false)
+                    .expect("Single star particle should have rendered.");
         }
     }
     fn on_key_down(&mut self, event: &Event) {

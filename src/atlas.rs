@@ -111,6 +111,12 @@ impl TexElement {
         (self.rect.w as u32, self.rect.h as u32)
     }
 
+    pub fn get_rect(&self) -> Rect {
+        Rect::new(self.rect.x(),
+                  self.rect.y(),
+                  self.rect.width(),
+                  self.rect.height())
+    }
     pub fn width(&self) -> u32 {
         self.rect.w as u32
     }
