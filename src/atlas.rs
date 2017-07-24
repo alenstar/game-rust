@@ -140,11 +140,13 @@ impl TexElement {
         self.visible
     }
 
-    pub fn get_visible_rect(&self) -> (u32, u32) {
-        (self.visible_rect.w as u32, self.visible_rect.h as u32)
+    pub fn get_visible_rect(&self) -> Rect {
+        self.visible_rect
     }
 
-    pub fn set_visible_rect(&mut self, w: u32, h: u32) {
+    pub fn set_visible_rect(&mut self, x: i32, y: i32, w: u32, h: u32) {
+        self.visible_rect.x = x;
+        self.visible_rect.y = y;
         self.visible_rect.w = w as i32;
         self.visible_rect.h = h as i32;
     }
@@ -156,6 +158,14 @@ impl TexElement {
     pub fn set_visible_size(&mut self, w: u32, h: u32) {
         self.visible_rect.w = w as i32;
         self.visible_rect.h = h as i32;
+    }
+
+    pub fn get_visible_position(&self) -> (i32, i32) {
+        (self.visible_rect.x, self.visible_rect.y)
+    }
+    pub fn set_visible_position(&mut self, x: i32, y: i32) {
+        self.visible_rect.x = x;
+        self.visible_rect.y = y;
     }
 
     pub fn set_angle<'a>(&'a mut self, angle: f64) -> &'a mut TexElement {
