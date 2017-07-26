@@ -137,12 +137,14 @@ impl Deref for Sprite {
     type Target = TexElement;
 
     fn deref<'a>(&'a self) -> &'a TexElement {
+        // FIXME
         &(*self.tex)
     }
 }
 
 impl DerefMut for Sprite {
     fn deref_mut<'a>(&'a mut self) -> &'a mut TexElement {
+        // FIXME
         &mut (*self.tex)
     }
 }
