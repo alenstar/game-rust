@@ -1,10 +1,13 @@
 extern crate sdl2;
 
+// use std::borrow::Borrow;
+use std::convert::AsRef;
 use std::ops::{Deref, DerefMut};
 use std::time::{Duration, SystemTime};
 use std::path::Path;
 use std::vec::Vec;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 use sdl2::rect::Rect;
 use sdl2::render::{Texture, Renderer, BlendMode};
@@ -25,11 +28,11 @@ pub struct Sprite {
     lasttime: SystemTime,
     // visible: bool,
     running: bool,
-    tex: TexElement,
+    tex: Rc<RefCell<TexElement>>,
 }
 
 impl Sprite {
-    pub fn new_from_tex(tex: TexElement) -> Sprite {
+    pub fn new_from_tex(tex: Rc<RefCell<TexElement>>) -> Sprite {
         Sprite {
             x: 0,
             y: 0,
@@ -48,7 +51,7 @@ impl Sprite {
             lasttime: SystemTime::now(),
             // visible: true,
             running: false,
-            tex: TexElement::new(renderer, path),
+            tex: Rc::new(RefCell::new(TexElement::new(renderer, path))),
         }
     }
 
@@ -134,15 +137,16 @@ impl Deref for Sprite {
     type Target = TexElement;
 
     fn deref<'a>(&'a self) -> &'a TexElement {
-        &self.tex
+        &(*self.tex)
     }
 }
 
 impl DerefMut for Sprite {
     fn deref_mut<'a>(&'a mut self) -> &'a mut TexElement {
-        &mut self.tex
+        &mut (*self.tex)
     }
 }
+
 
 // 自动移动屏幕
 pub struct AutoPan {

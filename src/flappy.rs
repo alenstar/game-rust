@@ -10,7 +10,7 @@ use sdl2::render::Renderer;
 use sdl2::render::Texture;
 use sdl2::image::LoadTexture;
 use sdl2::event::Event;
-use std::cell::RefCell;
+use std::cell::{Ref, RefMut, RefCell};
 use std::rc::Rc;
 use std::collections::HashMap;
 use sdl2::keyboard::Keycode;
@@ -155,11 +155,14 @@ impl FlappyScene {
         }
 
         let mut pipes = Vec::new();
-        for i in 1..4 {
-            let mut p = Pipe::new(renderer, "res/imgs/pipe.png");
-            p.set_position(0, 0);
-            pipes.push(Rc::new(p));
-        }
+        // for i in 1..4 {
+        let mut p = Pipe::new(renderer, w, h, "res/imgs/pipe.png");
+        p.set_position(0, 0);
+        pipes.push(Rc::new(p));
+        let mut p = Pipe::new_from_tex(atlas["pipe2_down"].clone(), w, h);
+        p.set_position(0, 0);
+        pipes.push(Rc::new(p));
+        // }
 
         FlappyScene {
             scroll: false,
@@ -429,7 +432,8 @@ pub struct Pipe {
     x: i32,
     w: u32,
     h: u32,
-
+    max_w: u32,
+    max_h: u32,
     speed: f32,
     xaccelerate: f32,
     yaccelerate: f32,
@@ -439,7 +443,7 @@ pub struct Pipe {
 
 
 impl Pipe {
-    pub fn new(renderer: &Renderer, path: &str) -> Pipe {
+    pub fn new(renderer: &Renderer, w: u32, h: u32, path: &str) -> Pipe {
         let sp = Sprite::new(renderer, path);
         let sz = sp.get_size();
         let mut inverted = false;
@@ -451,7 +455,8 @@ impl Pipe {
             x: 0,
             w: sz.0,
             h: thread_rng().gen_range(sz.1 / 10, sz.1),
-
+            max_w: w,
+            max_h: h,
             speed: 0.0,
             xaccelerate: 0.2,
             yaccelerate: 0.0,
@@ -459,9 +464,9 @@ impl Pipe {
             sprite: sp,
         }
     }
-    pub fn new_from_tex(tex: TexElement) -> Pipe {
+    pub fn new_from_tex(tex: Rc<RefCell<TexElement>>, w: u32, h: u32) -> Pipe {
         let mut inverted = false;
-        let sz = tex.get_size();
+        let sz = tex.as_ref().borrow().get_size();
         // Add some variation.
         if thread_rng().gen_range(0, 10) > 5 {
             inverted = true;
@@ -472,6 +477,8 @@ impl Pipe {
             w: sz.0,
             h: thread_rng().gen_range(sz.1 / 10, sz.1),
 
+            max_w: w,
+            max_h: h,
             speed: 0.0,
             xaccelerate: 0.2,
             yaccelerate: 0.0,
@@ -483,7 +490,7 @@ impl Pipe {
 impl Displayable for Pipe {
     fn paint(&self, renderer: &mut Renderer) {
         // , texture: &Texture) {
-        let mut rect = Rect::new(self.x, 600 - self.h as i32, self.w, self.h);
+        let mut rect = Rect::new(self.x, self.max_h as i32 - self.h as i32, self.w, self.h);
 
         let mut flip = false;
         if self.inverted {
@@ -491,7 +498,10 @@ impl Displayable for Pipe {
             flip = true;
         }
         let texture = self.sprite.get_texture();
-        renderer.copy_ex(texture, None, Some(rect), 0.0, None, false, flip)
+        let sz = self.sprite.get_size();
+        let pos = self.sprite.get_position();
+        let r = Rect::new(pos.0, pos.1, sz.0, sz.1);
+        renderer.copy_ex(texture, Some(r), Some(rect), 0.0, None, false, flip)
                 .expect("Single pipe should have rendered.");
     }
 
